@@ -2,7 +2,6 @@
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
-import Papa from "papaparse";
 import {
   Upload,
   FileText,
@@ -17,14 +16,25 @@ import {
   parseDocumentCSV,
 } from "@/lib/doc-classifier/classifier";
 import {
+  extractTextFromFile,
+  extractedToDocumentItems,
+  isSupportedUpload,
+} from "@/lib/doc-classifier/extract-text";
+import {
   MOCK_PASTE_DOCUMENTS,
   type DocClassifierScenarioId,
   getDocClassifierScenario,
   scenarioDocumentsToCsvRows,
 } from "@/data/mock/doc-classifier";
 import { FULL_PIPELINE } from "@/lib/doc-classifier/categories";
-import type { BatchClassificationResult, ClassifierMode } from "@/lib/doc-classifier/types";
+import type {
+  BatchClassificationResult,
+  ClassifierMode,
+  FileQueueItem,
+} from "@/lib/doc-classifier/types";
+import { SUPPORTED_UPLOAD_ACCEPT } from "@/lib/doc-classifier/types";
 import { DocClassifierDashboard } from "@/components/DocClassifierDashboard";
+import { DocClassifierUploadQueue } from "@/components/DocClassifierUploadQueue";
 import {
   AuditLogPanel,
   ProjectDemoShell,
@@ -41,8 +51,14 @@ const TABS: { id: ClassifierMode; label: string; icon: React.ReactNode }[] = [
   { id: "full", label: "Full PDF app", icon: <Terminal className="h-4 w-4" /> },
 ];
 
+const UPLOAD_FORMATS = "PDF, DOCX, TXT, MD, CSV, PNG, JPG, WEBP";
+
 function auditTime() {
   return new Date().toLocaleTimeString("en-US", { hour12: false });
+}
+
+function makeQueueId(): string {
+  return `q-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 export function DocClassifierApp() {
@@ -53,6 +69,7 @@ export function DocClassifierApp() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [scenario, setScenario] = useState<DocClassifierScenarioId>("kyc-retail");
   const [auditLog, setAuditLog] = useState<{ time: string; message: string }[]>([]);
+  const [fileQueue, setFileQueue] = useState<FileQueueItem[]>([]);
 
   const [pasteName, setPasteName] = useState("document.pdf");
   const [pasteText, setPasteText] = useState("");
@@ -89,23 +106,149 @@ export function DocClassifierApp() {
     [appendAudit, showResult]
   );
 
-  const handleFile = useCallback(
-    (file: File) => {
-      Papa.parse<Record<string, string>>(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (parsed) => {
-          if (!parsed.meta.fields?.length) {
-            setError("CSV has no headers.");
-            return;
-          }
-          runClassification(parsed.data, file.name);
-        },
-        error: () => setError("Failed to parse CSV."),
-      });
+  const processQueueItem = useCallback(
+    async (queueId: string, file: File) => {
+      setFileQueue((prev) =>
+        prev.map((item) =>
+          item.queueId === queueId ? { ...item, status: "extracting" } : item
+        )
+      );
+
+      appendAudit(`Extracting · ${file.name}`);
+
+      const extractedDocs = await extractTextFromFile(file);
+      const primary = extractedDocs[0];
+
+      if (primary?.error || !primary?.extractedText.trim()) {
+        const errMsg = primary?.error ?? "No text extracted";
+        setFileQueue((prev) =>
+          prev.map((item) =>
+            item.queueId === queueId
+              ? { ...item, status: "error", error: errMsg, extracted: primary }
+              : item
+          )
+        );
+        appendAudit(`Extraction failed · ${file.name} · ${errMsg}`);
+        return;
+      }
+
+      if (extractedDocs.length > 1) {
+        setFileQueue((prev) => {
+          const without = prev.filter((item) => item.queueId !== queueId);
+          const csvRows = extractedDocs.map((doc, i) => ({
+            queueId: `${queueId}-row-${i}`,
+            file,
+            status: "extracted" as const,
+            extracted: doc,
+            expanded: false,
+          }));
+          return [...without, ...csvRows];
+        });
+        appendAudit(
+          `CSV batch parsed · ${file.name} · ${extractedDocs.length} documents`
+        );
+        return;
+      }
+
+      setFileQueue((prev) =>
+        prev.map((item) =>
+          item.queueId === queueId
+            ? {
+                ...item,
+                status: "extracted",
+                extracted: primary,
+                expanded: false,
+              }
+            : item
+        )
+      );
+      appendAudit(
+        `Extracted · ${file.name} · ${primary.extractionMethod} · ${primary.extractedText.length} chars`
+      );
     },
-    [runClassification]
+    [appendAudit]
   );
+
+  const enqueueFiles = useCallback(
+    (files: FileList | File[]) => {
+      const incoming = Array.from(files);
+      const supported = incoming.filter(isSupportedUpload);
+      const rejected = incoming.length - supported.length;
+
+      if (rejected > 0) {
+        setError(
+          `${rejected} file(s) skipped — supported: ${UPLOAD_FORMATS}`
+        );
+      } else {
+        setError(null);
+      }
+
+      if (supported.length === 0) return;
+
+      const newItems: FileQueueItem[] = supported.map((file) => ({
+        queueId: makeQueueId(),
+        file,
+        status: "pending",
+        expanded: false,
+      }));
+
+      setFileQueue((prev) => [...prev, ...newItems]);
+      appendAudit(`Upload queue · ${supported.length} file(s) added`);
+
+      for (const item of newItems) {
+        void processQueueItem(item.queueId, item.file);
+      }
+    },
+    [appendAudit, processQueueItem]
+  );
+
+  const classifyQueue = useCallback(() => {
+    const ready = fileQueue.filter(
+      (item) => item.status === "extracted" && item.extracted?.extractedText
+    );
+    if (ready.length === 0) {
+      setError("No extracted documents ready to classify.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setFileQueue((prev) =>
+      prev.map((item) =>
+        item.status === "extracted" ? { ...item, status: "classifying" } : item
+      )
+    );
+
+    const extracted = ready
+      .map((item) => item.extracted!)
+      .filter((doc) => doc.extractedText.trim());
+    const docs = extractedToDocumentItems(extracted);
+    const batchName = `${docs.length} uploaded file${docs.length !== 1 ? "s" : ""}`;
+
+    appendAudit(`Classifying · ${docs.length} documents from upload queue`);
+
+    setTimeout(() => {
+      setFileQueue((prev) =>
+        prev.map((item) =>
+          item.status === "classifying" ? { ...item, status: "done" } : item
+        )
+      );
+      showResult(classifyDocuments(docs), batchName);
+    }, 600);
+  }, [appendAudit, fileQueue, showResult]);
+
+  const toggleQueueExpand = useCallback((queueId: string) => {
+    setFileQueue((prev) =>
+      prev.map((item) =>
+        item.queueId === queueId ? { ...item, expanded: !item.expanded } : item
+      )
+    );
+  }, []);
+
+  const clearQueue = useCallback(() => {
+    setFileQueue([]);
+    appendAudit("Upload queue cleared");
+  }, [appendAudit]);
 
   const loadScenario = useCallback(
     (id: DocClassifierScenarioId) => {
@@ -165,11 +308,11 @@ export function DocClassifierApp() {
   const onDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
-      const file = e.dataTransfer.files[0];
-      if (file?.name.endsWith(".csv")) handleFile(file);
-      else setError("Upload a .csv file with extracted document text.");
+      if (e.dataTransfer.files.length > 0) {
+        enqueueFiles(e.dataTransfer.files);
+      }
     },
-    [handleFile]
+    [enqueueFiles]
   );
 
   const handleScenarioChange = (id: string) => {
@@ -184,6 +327,7 @@ export function DocClassifierApp() {
   const handleReset = () => {
     setResult(null);
     setFileName(null);
+    setFileQueue([]);
     appendAudit("Session reset · new batch");
   };
 
@@ -213,7 +357,7 @@ export function DocClassifierApp() {
       enterpriseBadge="Enterprise demo · SLA routing"
       footer={
         <span>
-          MPNet + keyword heuristics · production Streamlit app for raw PDF extraction
+          Multi-format extraction · MPNet + keyword heuristics · production Streamlit app for OCR
         </span>
       }
     >
@@ -244,14 +388,14 @@ export function DocClassifierApp() {
                 Classify &amp; route documents at scale
               </h2>
               <p className="mx-auto mt-3 max-w-2xl text-zinc-600">
-                Browser demo for batch routing with SLA-backed ops queues — plus a production
-                Streamlit app with PDF extraction and Gemini fallback.
+                Upload PDFs, images, Word docs, and text files — extract in-browser, preview,
+                then route to SLA-backed ops queues.
               </p>
             </div>
 
             <div className="mb-6 grid gap-3 sm:grid-cols-3">
               {[
-                { step: "1", title: "Extract", desc: "PyMuPDF + OCR (EN/HI)" },
+                { step: "1", title: "Extract", desc: "PDF.js · Mammoth · demo OCR" },
                 { step: "2", title: "Classify", desc: "MPNet + keyword heuristics" },
                 { step: "3", title: "Route", desc: "KYC, income, compliance queues" },
               ].map((s) => (
@@ -286,42 +430,59 @@ export function DocClassifierApp() {
             </div>
 
             {mode === "batch" && (
-              <div
-                onDrop={onDrop}
-                onDragOver={(e) => e.preventDefault()}
-                className="rounded-2xl border-2 border-dashed border-zinc-200 bg-white p-10 text-center transition hover:border-cyan-300 hover:bg-cyan-50/20"
-              >
-                <Upload className="mx-auto h-10 w-10 text-zinc-400" />
-                <p className="mt-4 font-medium text-zinc-900">Drop CSV of extracted text</p>
-                <p className="mt-2 text-sm text-zinc-500">
-                  5-class taxonomy · routes to SLA-backed ops queues
-                </p>
-                <label
-                  className={`mt-5 inline-block cursor-pointer rounded-lg px-5 py-2.5 text-sm font-semibold text-white ${THEME.accentMuted}`}
+              <>
+                <div
+                  onDrop={onDrop}
+                  onDragOver={(e) => e.preventDefault()}
+                  className="rounded-2xl border-2 border-dashed border-zinc-200 bg-white p-10 text-center transition hover:border-cyan-300 hover:bg-cyan-50/20"
                 >
-                  Choose file
-                  <input
-                    type="file"
-                    accept=".csv"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleFile(file);
-                    }}
-                  />
-                </label>
-                <p className="mt-4">
-                  <button
-                    type="button"
-                    onClick={loadSample}
-                    disabled={loading}
-                    className={`text-sm font-medium ${THEME.accent} hover:opacity-80 disabled:opacity-50`}
+                  <Upload className="mx-auto h-10 w-10 text-zinc-400" />
+                  <p className="mt-4 font-medium text-zinc-900">
+                    Drop documents or CSV batch
+                  </p>
+                  <p className="mt-2 text-sm text-zinc-500">
+                    {UPLOAD_FORMATS} · multi-file queue · preview before classify
+                  </p>
+                  <label
+                    className={`mt-5 inline-block cursor-pointer rounded-lg px-5 py-2.5 text-sm font-semibold text-white ${THEME.accentMuted}`}
                   >
-                    Try {getDocClassifierScenario(scenario).label} batch (
-                    {scenarioDocumentsToCsvRows(scenario).length} documents) →
-                  </button>
-                </p>
-              </div>
+                    Choose files
+                    <input
+                      type="file"
+                      accept={SUPPORTED_UPLOAD_ACCEPT}
+                      multiple
+                      className="hidden"
+                      onChange={(e) => {
+                        const files = e.target.files;
+                        if (files?.length) enqueueFiles(files);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                  <p className="mt-4">
+                    <button
+                      type="button"
+                      onClick={loadSample}
+                      disabled={loading}
+                      className={`text-sm font-medium ${THEME.accent} hover:opacity-80 disabled:opacity-50`}
+                    >
+                      Try {getDocClassifierScenario(scenario).label} batch (
+                      {scenarioDocumentsToCsvRows(scenario).length} documents) →
+                    </button>
+                  </p>
+                  <p className="mt-2 text-xs text-zinc-400">
+                    Scenario batches load pre-extracted CSV · uploads run live extraction
+                  </p>
+                </div>
+
+                <DocClassifierUploadQueue
+                  items={fileQueue}
+                  onToggleExpand={toggleQueueExpand}
+                  onClassify={classifyQueue}
+                  onClear={clearQueue}
+                  classifying={loading}
+                />
+              </>
             )}
 
             {mode === "paste" && (
@@ -448,7 +609,7 @@ streamlit run streamlit_app.py`}
               </div>
             )}
 
-            {loading && (
+            {loading && fileQueue.every((i) => i.status !== "extracting") && (
               <p className="mt-6 text-center text-sm text-zinc-500">Classifying documents…</p>
             )}
             {error && <p className="mt-6 text-center text-sm text-red-600">{error}</p>}
