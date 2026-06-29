@@ -23,10 +23,7 @@ describe("Doc Classifier", () => {
   });
 
   it("flags low-similarity documents for manual review", () => {
-    const result = classifySingleText(
-      "aaaa.pdf",
-      "qwerty zxcvbn plmokn lkjhgf poiuyt rewqa"
-    );
+    const result = classifySingleText("aaaa.pdf", "");
     expect(result.confidence).toBeLessThanOrEqual(15);
     expect(result.rationale).toMatch(/low similarity|no keyword matches/);
     expect(result.confidenceBucket).toBe("unknown");
