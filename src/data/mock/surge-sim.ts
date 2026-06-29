@@ -51,6 +51,24 @@ export const ENTERPRISE_SURGE_PRESETS: SurgeSimPreset[] = [
     weather: "clear",
     expectedMatchRate: "~62%",
   },
+  {
+    id: "downtown",
+    label: "Downtown nightlife",
+    description: "Late-night demand spike with thinning supply after midnight.",
+    baseSupply: 38,
+    baseDemand: 78,
+    weather: "clear",
+    expectedMatchRate: "~58%",
+  },
+  {
+    id: "holiday",
+    label: "Holiday surge",
+    description: "Peak travel weekend — elevated demand across all zones.",
+    baseSupply: 42,
+    baseDemand: 85,
+    weather: "heat_wave",
+    expectedMatchRate: "~55%",
+  },
 ];
 
 export const SURGE_SIM_PRESETS: SurgeSimPreset[] = [

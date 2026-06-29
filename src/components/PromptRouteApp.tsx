@@ -45,9 +45,10 @@ import { hashString } from "@/lib/prompt-route/seeded-random";
 import type { PromptRouteTab, RoutingPolicy, SimulationResult } from "@/lib/prompt-route/types";
 import { PROJECT_THEMES, ENTERPRISE_SCENARIOS } from "@/lib/project-themes";
 import {
-  AuditLogPanel,
+  EnterpriseAuditLog,
   ProjectDemoShell,
 } from "@/components/enterprise/ProjectDemoShell";
+import { EditableSection, AdminActionButton } from "@/components/enterprise/RbacControls";
 import { PromptRouteDashboard } from "@/components/PromptRouteDashboard";
 import { PromptRouteFlowDiagram } from "@/components/PromptRouteFlowDiagram";
 
@@ -290,15 +291,14 @@ export function PromptRouteApp() {
                 scenario — chat, code, summarization, extraction, and reasoning workloads with
                 deterministic routing and simulated 429 failover.
               </p>
-              <button
-                type="button"
+              <AdminActionButton
                 onClick={runBatch}
                 disabled={loading}
-                className={`inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium text-white disabled:opacity-50 ${theme.accentMuted}`}
+                className={`inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium text-white ${theme.accentMuted}`}
               >
                 <Play className="h-4 w-4" />
                 Run sample batch ({scenarioPrompts.length})
-              </button>
+              </AdminActionButton>
             </div>
 
             <div className="rounded-xl border border-zinc-200 bg-white p-6">
@@ -486,7 +486,7 @@ export function PromptRouteApp() {
       )}
 
       <div className="mt-8">
-        <AuditLogPanel entries={auditLog} accentClass={theme.accent} />
+        <EnterpriseAuditLog entries={auditLog} accentClass={theme.accent} />
       </div>
     </ProjectDemoShell>
   );

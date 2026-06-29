@@ -88,6 +88,53 @@ export const MOCK_LLM_PROMPTS: MockPrompt[] = [
     taskType: "code_gen",
     label: "Analytics SQL",
   },
+  {
+    id: "chat-3",
+    prompt: "Thanks! Can you confirm my appointment is still at 3pm tomorrow?",
+    taskType: "simple_chat",
+    label: "Scheduling confirm",
+  },
+  {
+    id: "sum-3",
+    prompt:
+      "Condense this 40-page SOC 2 audit report into a one-page executive summary highlighting open findings.",
+    taskType: "summarization",
+    label: "Compliance summary",
+  },
+  {
+    id: "code-3",
+    prompt:
+      "Implement a Python FastAPI endpoint with Pydantic validation for batch document classification webhooks.",
+    taskType: "code_gen",
+    label: "API scaffold",
+  },
+  {
+    id: "reason-3",
+    prompt:
+      "Given our current 2M DAU and $0.08/1K token cost, model the ROI of routing 70% of traffic to Flash vs Pro.",
+    taskType: "complex_reasoning",
+    label: "Cost modeling",
+  },
+  {
+    id: "extract-3",
+    prompt:
+      "From this shipping label OCR text, extract tracking_number, carrier, weight_kg, and destination_zip as JSON.",
+    taskType: "data_extraction",
+    label: "Logistics parse",
+  },
+  {
+    id: "chat-4",
+    prompt: "What does error code ECONNRESET mean in Node.js?",
+    taskType: "simple_chat",
+    label: "Dev FAQ",
+  },
+  {
+    id: "reason-4",
+    prompt:
+      "Design a circuit-breaker policy for OpenAI, Anthropic, and Gemini with fallback order and health-check intervals.",
+    taskType: "complex_reasoning",
+    label: "Resilience design",
+  },
 ];
 
 export const SAMPLE_PROMPTS = MOCK_LLM_PROMPTS.map((p) => p.prompt);
@@ -96,5 +143,5 @@ export const MOCK_ROUTING_BATCH = {
   name: "Mixed production workload",
   description: "12 prompts spanning chat, code, summarization, extraction, and reasoning.",
   promptCount: MOCK_LLM_PROMPTS.length,
-  expectedCostSavingsPct: "~45%",
+  expectedCostSavingsPct: "~48%",
 };

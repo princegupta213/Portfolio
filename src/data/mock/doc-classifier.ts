@@ -144,6 +144,34 @@ export const MOCK_BATCH_DOCUMENTS: MockDocument[] = [
     expectedCategory: "resume",
     routingQueue: "HR cross-check",
   },
+  {
+    id: "dl",
+    name: "driving_license.pdf",
+    text: "Driving Licence · Transport Department · Licence Number DL-0123456789 · Date of Issue · Valid Till · Government of India · Address proof",
+    expectedCategory: "government_id",
+    routingQueue: "KYC verification",
+  },
+  {
+    id: "salary",
+    name: "salary_slip_march.pdf",
+    text: "Salary Slip · Employee Name · Gross Salary · Net Pay · PF ESI deductions · Pay Period March 2025 · Employer TCS Ltd",
+    expectedCategory: "resume",
+    routingQueue: "Income & liability review",
+  },
+  {
+    id: "balance",
+    name: "balance_sheet_fy24.pdf",
+    text: "Balance Sheet · Assets Liabilities · Shareholders Equity · Financial Year 2023-24 · Auditor Report · CA certified",
+    expectedCategory: "ITR",
+    routingQueue: "Financial & tax review",
+  },
+  {
+    id: "noc",
+    name: "bank_noc_letter.pdf",
+    text: "No Objection Certificate · Bank NOC · Loan closure · Outstanding balance zero · HDFC Bank letterhead",
+    expectedCategory: "bank_statement",
+    routingQueue: "Income & liability review",
+  },
 ];
 
 export type DocClassifierScenarioId = "kyc-retail" | "sme-lending" | "hiring" | "compliance";
@@ -162,21 +190,21 @@ export const DOC_CLASSIFIER_SCENARIOS: DocClassifierScenario[] = [
     id: "kyc-retail",
     label: "Retail KYC",
     description: "ID + bank statement mix",
-    documentIds: ["aadhaar", "bank", "pan", "passport", "voter", "sbi", "kotak", "icici"],
+    documentIds: ["aadhaar", "bank", "pan", "passport", "voter", "sbi", "kotak", "icici", "dl"],
     fileName: "retail-kyc-batch.csv",
   },
   {
     id: "sme-lending",
     label: "SME lending",
     description: "Invoices + ITR heavy",
-    documentIds: ["invoice", "proforma", "itr", "itr2", "form26", "gst", "retail"],
+    documentIds: ["invoice", "proforma", "itr", "itr2", "form26", "gst", "retail", "balance"],
     fileName: "sme-lending-batch.csv",
   },
   {
     id: "hiring",
     label: "HR onboarding",
     description: "CV + ID verification",
-    documentIds: ["resume", "cv2", "employment", "aadhaar", "pan", "passport"],
+    documentIds: ["resume", "cv2", "employment", "aadhaar", "pan", "passport", "salary"],
     fileName: "hr-onboarding-batch.csv",
   },
   {
@@ -194,6 +222,7 @@ export const DOC_CLASSIFIER_SCENARIOS: DocClassifierScenario[] = [
       "form26",
       "passport",
       "gst",
+      "noc",
     ],
     fileName: "compliance-audit-batch.csv",
   },

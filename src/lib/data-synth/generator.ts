@@ -44,6 +44,20 @@ const REVIEW_BODIES: Record<string, string[]> = {
     "forecast rollups match what finance expects in QBR decks.",
     "bulk email sequences respect opt-out rules — compliance team approved.",
   ],
+  HealthTech: [
+    "medication reminders are reliable and sync with my pharmacy refill schedule.",
+    "vitals dashboard helps my doctor spot trends between appointments.",
+    "HIPAA consent flow is clear — I know what data is shared.",
+    "appointment booking slots update in real time without double-booking.",
+    "care plan checklists keep me on track after discharge.",
+  ],
+  "E-commerce": [
+    "flash sale prices update correctly at checkout — no bait-and-switch.",
+    "order tracking shows live courier location during festival rush.",
+    "return pickup scheduled within 24h — hassle-free RTO flow.",
+    "wishlist price-drop alerts saved me ₹800 on electronics.",
+    "COD verification OTP prevents fake delivery attempts.",
+  ],
 };
 
 const BUG_TEMPLATES = [
@@ -127,7 +141,7 @@ function computeCompliance(config: PersonaConfig, items: FeedbackItem[]): number
   return Math.min(96, Math.round((base + 78) * 10) / 10);
 }
 
-export const PRODUCT_CATEGORIES = ["Fintech", "Fitness App", "B2B CRM"] as const;
+export const PRODUCT_CATEGORIES = ["Fintech", "Fitness App", "B2B CRM", "HealthTech", "E-commerce"] as const;
 
 export const DEFAULT_CONFIG: PersonaConfig = {
   category: "Fintech",

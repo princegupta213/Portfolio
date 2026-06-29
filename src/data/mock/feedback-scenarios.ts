@@ -31,6 +31,10 @@ const FINTECH_REVIEWS: MockReview[] = [
   { review: "Biometric login works great when it doesn't crash on launch.", rating: 3, date: "2025-02-10", source: "Google Play" },
   { review: "Need dark mode for late-night balance checks.", rating: 4, date: "2025-02-11", source: "App Store" },
   { review: "Please add export to CSV for tax filing.", rating: 4, date: "2025-02-12", source: "Google Play" },
+  { review: "Loan EMI calculator shows wrong interest for floating rates.", rating: 2, date: "2025-02-13", source: "App Store" },
+  { review: "Mutual fund SIP failed silently — no error message.", rating: 1, date: "2025-02-14", source: "Google Play" },
+  { review: "Credit score update is 2 weeks stale compared to bureau.", rating: 2, date: "2025-02-15", source: "App Store" },
+  { review: "Referral bonus never credited after friend completed KYC.", rating: 2, date: "2025-02-16", source: "Google Play" },
 ];
 
 const SAAS_REVIEWS: MockReview[] = [
@@ -46,6 +50,10 @@ const SAAS_REVIEWS: MockReview[] = [
   { review: "Love the new analytics module — finally actionable insights.", rating: 5, date: "2025-02-10", source: "Capterra" },
   { review: "Need SCIM provisioning for Okta.", rating: 4, date: "2025-02-11", source: "G2" },
   { review: "Search across workspaces returns irrelevant results.", rating: 2, date: "2025-02-12", source: "Capterra" },
+  { review: "Audit log export missing user attribution fields.", rating: 3, date: "2025-02-13", source: "G2" },
+  { review: "Custom report builder times out on 12-month date ranges.", rating: 2, date: "2025-02-14", source: "Capterra" },
+  { review: "Sandbox environment resets wipe our demo data nightly.", rating: 2, date: "2025-02-15", source: "G2" },
+  { review: "EU data residency option not available on our contract tier.", rating: 3, date: "2025-02-16", source: "Capterra" },
 ];
 
 const CONSUMER_REVIEWS: MockReview[] = [
@@ -61,6 +69,10 @@ const CONSUMER_REVIEWS: MockReview[] = [
   { review: "Customer support took 5 days to respond.", rating: 1, date: "2025-01-24", source: "App Store" },
   { review: "Would love offline mode for commutes.", rating: 4, date: "2025-01-25", source: "Google Play" },
   { review: "Filters on browse page don't stick after refresh.", rating: 2, date: "2025-01-26", source: "App Store" },
+  { review: "Share sheet crashes when posting to Instagram Stories.", rating: 1, date: "2025-01-27", source: "Google Play" },
+  { review: "Widget on home screen never updates — stuck on yesterday.", rating: 2, date: "2025-01-28", source: "App Store" },
+  { review: "Family plan invite link expired before spouse could join.", rating: 2, date: "2025-01-29", source: "Google Play" },
+  { review: "Biometric unlock fails after OS update — have to re-login daily.", rating: 2, date: "2025-01-30", source: "App Store" },
 ];
 
 const MARKETPLACE_REVIEWS: MockReview[] = [
@@ -76,6 +88,10 @@ const MARKETPLACE_REVIEWS: MockReview[] = [
   { review: "Easy to list items — onboarding for sellers is smooth.", rating: 4, date: "2025-03-10", source: "Google Play" },
   { review: "Need bulk upload CSV for inventory management.", rating: 4, date: "2025-03-11", source: "App Store" },
   { review: "Delivery tracking sync lost between buyer and seller views.", rating: 2, date: "2025-03-12", source: "Google Play" },
+  { review: "Seller verification badge removed without explanation.", rating: 2, date: "2025-03-13", source: "App Store" },
+  { review: "Promoted listings don't show analytics in seller dashboard.", rating: 3, date: "2025-03-14", source: "Google Play" },
+  { review: "Cross-border shipping customs form missing HS codes.", rating: 2, date: "2025-03-15", source: "App Store" },
+  { review: "Buyer protection claim rejected with no appeal path.", rating: 1, date: "2025-03-16", source: "Google Play" },
 ];
 
 export const FEEDBACK_SCENARIOS: FeedbackScenario[] = [

@@ -38,20 +38,23 @@ export const promptRouteCaseStudy = {
   },
 
   results: {
-    headline: "Sample batch simulation (8 mixed prompts)",
+    headline: "Sample batch simulation (18 mixed prompts)",
     summary:
-      "Routing a mixed workload through PromptRoute vs. a GPT-4o-only baseline yields ~45% cost savings with sub-20 ms router overhead. Failover resolves 85%+ of simulated rate-limit events. Simple chat and extraction tasks land on Flash/Haiku; code and reasoning route to Pro/Sonnet — matching the cost-capability curve platform teams want.",
+      "Routing an 18-prompt mixed workload through PromptRoute vs. a GPT-4o-only baseline yields ~48% cost savings with sub-20 ms router overhead. Failover resolves 85%+ of simulated rate-limit events. Simple chat and extraction tasks land on Flash/Haiku; code and reasoning route to Pro/Sonnet — matching the cost-capability curve platform teams want.",
     metrics: [
-      { label: "Cost savings", value: "~45%" },
+      { label: "Cost savings", value: "~48%" },
       { label: "Failover recovery", value: "> 85%" },
       { label: "Router overhead", value: "~15 ms" },
-      { label: "Routing policies", value: "6" },
+      { label: "Sample prompts", value: "18" },
     ],
     sampleRoutes: [
       { task: "Simple Chat", primary: "Gemini Flash", fallback: "Claude Haiku", outcome: "Primary" },
       { task: "Code Generation", primary: "Gemini Pro", fallback: "Claude Sonnet", outcome: "Fallback (429)" },
       { task: "Summarization", primary: "Gemini Flash", fallback: "GPT-4o mini", outcome: "Primary" },
       { task: "Complex Reasoning", primary: "Gemini Pro", fallback: "GPT-4o", outcome: "Primary" },
+      { task: "Compliance summary", primary: "Gemini Flash", fallback: "GPT-4o mini", outcome: "Primary" },
+      { task: "Cost modeling", primary: "Gemini Pro", fallback: "Claude Sonnet", outcome: "Primary" },
+      { task: "Logistics parse", primary: "Gemini Flash", fallback: "Claude Haiku", outcome: "Fallback (429)" },
     ],
   },
 

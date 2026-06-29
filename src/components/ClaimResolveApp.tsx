@@ -27,9 +27,10 @@ import type {
 } from "@/lib/claim-resolve/types";
 import { PROJECT_THEMES, ENTERPRISE_SCENARIOS } from "@/lib/project-themes";
 import {
-  AuditLogPanel,
+  EnterpriseAuditLog,
   ProjectDemoShell,
 } from "@/components/enterprise/ProjectDemoShell";
+import { EditableSection, AdminActionButton } from "@/components/enterprise/RbacControls";
 import { ClaimResolveVerdict } from "@/components/ClaimResolveVerdict";
 import { ClaimResolveFlowDiagram } from "@/components/ClaimResolveFlowDiagram";
 
@@ -306,6 +307,7 @@ export function ClaimResolveApp() {
             onSubmit={handleSubmit}
             className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm lg:col-span-3"
           >
+            <EditableSection className="disabled:opacity-70">
             <h2 className="mb-1 text-lg font-semibold text-zinc-900">
               Customer refund portal
             </h2>
@@ -395,6 +397,7 @@ export function ClaimResolveApp() {
                 )}
               </div>
             )}
+            </EditableSection>
           </form>
 
           <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm lg:col-span-2">
@@ -424,7 +427,7 @@ export function ClaimResolveApp() {
       )}
 
       {!loading && tab === "policies" && (
-        <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+        <EditableSection className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm disabled:opacity-70">
           <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
             <div>
               <h2 className="mb-1 text-lg font-semibold text-zinc-900">Policy configuration</h2>
@@ -528,7 +531,7 @@ export function ClaimResolveApp() {
               </li>
             ))}
           </ul>
-        </div>
+        </EditableSection>
       )}
 
       {!loading && tab === "batch" && (
@@ -562,14 +565,13 @@ export function ClaimResolveApp() {
           </div>
 
           <div className="mt-8 text-center">
-            <button
-              type="button"
+            <AdminActionButton
               onClick={runBatch}
               className={`inline-flex items-center gap-2 rounded-lg px-6 py-3 text-sm font-semibold text-white ${theme.accentMuted}`}
             >
               <Play className="h-4 w-4" />
               Run batch triage
-            </button>
+            </AdminActionButton>
             <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-zinc-400">
               <AlertTriangle className="h-3.5 w-3.5" />
               North star: auto-resolution rate · Guardrail: false refund rate
@@ -579,7 +581,7 @@ export function ClaimResolveApp() {
       )}
 
       <div className="mt-8">
-        <AuditLogPanel entries={auditLog} accentClass={theme.accent} />
+        <EnterpriseAuditLog entries={auditLog} accentClass={theme.accent} />
       </div>
     </ProjectDemoShell>
   );

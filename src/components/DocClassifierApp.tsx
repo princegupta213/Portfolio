@@ -36,10 +36,11 @@ import { SUPPORTED_UPLOAD_ACCEPT } from "@/lib/doc-classifier/types";
 import { DocClassifierDashboard } from "@/components/DocClassifierDashboard";
 import { DocClassifierUploadQueue } from "@/components/DocClassifierUploadQueue";
 import {
-  AuditLogPanel,
+  EnterpriseAuditLog,
   ProjectDemoShell,
   type DemoMetric,
 } from "@/components/enterprise/ProjectDemoShell";
+import { EditableSection, AdminActionButton } from "@/components/enterprise/RbacControls";
 import { ENTERPRISE_SCENARIOS, PROJECT_THEMES } from "@/lib/project-themes";
 
 const THEME = PROJECT_THEMES["doc-classifier"];
@@ -371,7 +372,7 @@ export function DocClassifierApp() {
             onExportAudit={(msg) => appendAudit(msg)}
           />
           <div className="mt-6">
-            <AuditLogPanel entries={auditLog} accentClass={THEME.accent} />
+            <EnterpriseAuditLog entries={auditLog} accentClass={THEME.accent} />
           </div>
         </>
       ) : (
@@ -617,7 +618,7 @@ streamlit run streamlit_app.py`}
 
           {auditLog.length > 0 && (
             <div className="mx-auto mt-8 max-w-3xl">
-              <AuditLogPanel entries={auditLog} accentClass={THEME.accent} />
+              <EnterpriseAuditLog entries={auditLog} accentClass={THEME.accent} />
             </div>
           )}
         </>

@@ -123,6 +123,7 @@ export const projects: Project[] = [
       "Unified document intelligence for fintech onboarding: classify invoices, bank statements, IDs, ITRs, and CVs into ops routing queues. Browser demo for batch CSV; production Streamlit app with PyMuPDF, MPNet embeddings (155 examples), EN/HI OCR, and Gemini fallback.",
     tags: ["Fintech", "KYC", "Python", "NLP", "Gemini AI"],
     href: "/projects/doc-classifier",
+    caseStudyHref: "/projects/doc-classifier/case-study",
     docsHref: "/docs/doc-classifier-PRD",
     featured: true,
     accent: "emerald",

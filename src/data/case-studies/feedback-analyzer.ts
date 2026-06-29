@@ -9,8 +9,9 @@ export const feedbackAnalyzerCaseStudy = {
     body: "Product managers spend hours reading app reviews, NPS comments, and support tickets — but struggle to synthesize patterns, quantify urgency, and translate insights into a prioritized roadmap. Manual tagging is slow, inconsistent, and hard to defend in stakeholder meetings.",
     stats: [
       { label: "Time spent on feedback synthesis", value: "40%+" },
-      { label: "Reviews in sample dataset", value: "106" },
+      { label: "Reviews per scenario", value: "16–17" },
       { label: "Target time-to-insight", value: "< 2 min" },
+      { label: "Enterprise scenarios", value: "4 verticals" },
     ],
   },
 
@@ -34,23 +35,30 @@ export const feedbackAnalyzerCaseStudy = {
       { name: "Sentiment analysis", why: "Surfaces urgency — 58% of sample reviews were negative" },
       { name: "ICE-scored roadmap", why: "Defensible prioritization for stakeholders and interviews" },
       { name: "Markdown export", why: "Drop into Notion, slides, or interview prep docs" },
+      { name: "RBAC role preview", why: "Analyst sees KPI metrics; Ops views audit trail; Viewer read-only uploads" },
     ],
   },
 
   results: {
-    headline: "Sample analysis results",
+    headline: "Fintech app scenario (17 reviews)",
     summary:
-      "Analyzing 106 synthetic app reviews surfaced 10 themes. Top P0 initiatives: clarify pricing/subscription value, streamline login/account recovery, and improve search relevance. Performance & stability appeared in 12+ reviews but ranked lower on ICE due to effort estimates — a tradeoff I'd revisit with engineering input.",
+      "Analyzing 17 fintech-focused reviews surfaced trust, KYC, and payments themes. Top P0 initiatives: fix UPI processing hangs, streamline PAN verification loops, and clarify fee transparency. Expanded scenario library (SaaS, consumer, marketplace) lets PMs compare vertical-specific pain points in under 2 minutes.",
     metrics: [
-      { label: "Themes detected", value: "10" },
-      { label: "Negative sentiment", value: "58%" },
+      { label: "Themes detected", value: "8+" },
+      { label: "Negative sentiment", value: "~65%" },
       { label: "P0 initiatives", value: "3" },
-      { label: "Export format", value: "Markdown" },
+      { label: "Scenarios", value: "4" },
     ],
     topPriorities: [
-      { priority: "P0", title: "Clarify pricing and subscription value", ice: 20 },
-      { priority: "P0", title: "Streamline login and account recovery", ice: 18 },
-      { priority: "P0", title: "Improve search relevance and filters", ice: 16 },
+      { priority: "P0", title: "Fix UPI payment processing hangs", ice: 21 },
+      { priority: "P0", title: "Resolve PAN verification loops", ice: 19 },
+      { priority: "P0", title: "Clarify hidden fees at checkout", ice: 17 },
+    ],
+    sampleScenarios: [
+      { scenario: "Fintech app", reviews: 17, topTheme: "Trust & KYC", negativePct: "~65%" },
+      { scenario: "B2B SaaS", reviews: 17, topTheme: "Integrations & uptime", negativePct: "~55%" },
+      { scenario: "Consumer app", reviews: 17, topTheme: "Performance & UX", negativePct: "~50%" },
+      { scenario: "Marketplace", reviews: 17, topTheme: "Buyer/seller disputes", negativePct: "~60%" },
     ],
   },
 
@@ -87,6 +95,7 @@ export const feedbackAnalyzerCaseStudy = {
     prd: "/docs/PRD",
     strategy: "/docs/product-strategy",
     research: "/docs/user-research-summary",
+    caseStudy: "/projects/feedback-analyzer/case-study",
   },
 
   // Set to "/projects/feedback-analyzer-dashboard.png" after you add a screenshot to public/

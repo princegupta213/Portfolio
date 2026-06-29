@@ -15,6 +15,7 @@ export const claimResolveCaseStudy = {
       { label: "Avg. manual review time", value: "8–12 min" },
       { label: "Target auto-resolution", value: "> 70%" },
       { label: "False refund guardrail", value: "< 2%" },
+      { label: "Mock order corpus", value: "20 orders" },
     ],
   },
 
@@ -25,6 +26,7 @@ export const claimResolveCaseStudy = {
       "High-value, repeat, and flagged accounts must never auto-approve without human review.",
       "Every auto-decision needs an audit trail: which rule fired and why.",
       "Customer notification drafts reduce agent follow-up time on approved/denied cases.",
+      "Scenario presets (strict fraud, holiday volume, enterprise SLA) must be PM-switchable without eng deploys.",
     ],
     method: "Modeled on fintech CS workflows (chargeback windows, fraud holds, repeat claimant patterns) and Angel One–style ops guardrails for financial disbursements.",
     researchDocHref: "/docs/claim-resolve-PRD.md",
@@ -33,11 +35,11 @@ export const claimResolveCaseStudy = {
   solution: {
     headline: "What I built",
     features: [
-      { name: "Policy Configuration Panel", why: "PM-tunable rules: max refund value, transaction age, warning count, repeat claims, fraud block" },
-      { name: "Customer Submission Portal", why: "Mock form with email + order ID lookup against seeded billing records" },
+      { name: "Policy Configuration Panel", why: "PM-tunable rules: max refund value, transaction age, warning count, repeat claims, fraud block — 4 enterprise scenarios" },
+      { name: "Customer Submission Portal", why: "Mock form with email + order ID lookup against 20 seeded billing records" },
       { name: "Automated Verdict Engine", why: "Approve, deny, or route to human review with per-rule evaluation and severity ranking" },
       { name: "Email Notification Drafts", why: "Context-aware customer emails listing triggered policies" },
-      { name: "Ops Metrics Dashboard", why: "North star (auto-resolution rate) and guardrail (false refund rate) with batch simulation" },
+      { name: "Ops Metrics Dashboard", why: "North star (auto-resolution rate) and guardrail (false refund rate) with batch simulation + RBAC roles" },
     ],
   },
 
@@ -55,6 +57,9 @@ export const claimResolveCaseStudy = {
       { order: "ORD-1002", amount: "$79.00", verdict: "Human review", rule: "Exceeds $50 cap" },
       { order: "ORD-1003", amount: "$32.50", verdict: "Denied", rule: "Outside 30-day window" },
       { order: "ORD-1006", amount: "$55.00", verdict: "Denied", rule: "High-risk account" },
+      { order: "ORD-1014", amount: "$199.00", verdict: "Human review", rule: "High-value + prior claim" },
+      { order: "ORD-1018", amount: "$89.99", verdict: "Denied", rule: "Fraud score flagged" },
+      { order: "ORD-1017", amount: "$8.49", verdict: "Approved", rule: "Micro-refund eligible" },
     ],
   },
 
@@ -70,14 +75,31 @@ export const claimResolveCaseStudy = {
         rationale: "Seeded orders include hidden eligibility flags so the demo can surface false auto-approvals as a guardrail KPI.",
       },
       {
+        decision: "20-order corpus with edge cases",
+        rationale: "Expanded from 12 to cover micro-refunds, consumed services, and fraud fingerprints — better batch simulation fidelity.",
+      },
+      {
         decision: "Client-side policy engine",
         rationale: "Browser demo for portfolio — production would connect to billing API, fraud scores, and agent queue.",
       },
     ],
   },
 
+  nextSteps: {
+    headline: "Production roadmap",
+    items: [
+      "Connect to billing API and real-time fraud score ingestion",
+      "Agent queue integration with SLA timers on human-review cases",
+      "A/B policy experiments with holdout groups",
+      "Per-tenant policy CRUD with audit trail and RBAC",
+    ],
+  },
+
   links: {
     liveDemo: "/projects/claim-resolve",
     prd: "/docs/claim-resolve-PRD.md",
+    caseStudy: "/projects/claim-resolve/case-study",
   },
+
+  screenshotSrc: null as string | null,
 };

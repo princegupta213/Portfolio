@@ -11,6 +11,7 @@ export const surgeSimCaseStudy = {
       { label: "Typical rain demand spike", value: "+45%" },
       { label: "Driver supply drop (heavy rain)", value: "−28%" },
       { label: "Surge cap range tested", value: "1.2–3.0x" },
+      { label: "Enterprise zone presets", value: "7" },
     ],
   },
 
@@ -34,6 +35,7 @@ export const surgeSimCaseStudy = {
       { name: "Weather Event Presets", why: "Clear, rain, heat, snow — each shifts demand and supply multipliers like real ops playbooks" },
       { name: "Surge Algorithm Tweaker", why: "Adjust min/max multiplier caps and sensitivity to see elasticity curves" },
       { name: "Market Balance Monitor", why: "Real-time line chart of match rate vs. abandonment as you tune parameters" },
+      { name: "RBAC role preview", why: "Admin tunes surge caps; Analyst sees KPI header; Ops exports audit-ready reports" },
     ],
   },
 
@@ -52,6 +54,9 @@ export const surgeSimCaseStudy = {
       { scenario: "Heavy Rain Spike", weather: "Rain", match: "~78%", abandon: "~14%" },
       { scenario: "Driver Shortage", weather: "Clear", match: "~65%", abandon: "~22%" },
       { scenario: "Snow Storm", weather: "Snow", match: "~58%", abandon: "~26%" },
+      { scenario: "Stadium event", weather: "Clear", match: "~60%", abandon: "~20%" },
+      { scenario: "Downtown nightlife", weather: "Clear", match: "~58%", abandon: "~22%" },
+      { scenario: "Holiday surge", weather: "Heat wave", match: "~55%", abandon: "~24%" },
     ],
   },
 

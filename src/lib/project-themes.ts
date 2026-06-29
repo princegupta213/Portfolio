@@ -147,12 +147,16 @@ export const ENTERPRISE_SCENARIOS: Partial<Record<ProjectThemeId, EnterpriseScen
     { id: "churn", label: "Churn post-mortem", description: "Heavy negative + feature requests" },
     { id: "enterprise", label: "Enterprise beta", description: "Power-user persona, compliance focus" },
     { id: "support", label: "Support sandbox", description: "Bug reports + neutral how-to questions" },
+    { id: "healthcare", label: "HealthTech pilot", description: "Patient adherence + care-plan feedback" },
+    { id: "ecommerce", label: "Festive sale QA", description: "Price-sensitive shopper complaints" },
   ],
   "surge-sim": [
     { id: "rush-hour", label: "Friday rush hour", description: "High demand, moderate supply" },
     { id: "storm", label: "Storm surge", description: "Weather shock + demand spike" },
     { id: "stadium", label: "Stadium event", description: "Localized hotspot, supply drain" },
     { id: "airport", label: "Airport pickup", description: "Sustained imbalance, cap test" },
+    { id: "downtown", label: "Downtown nightlife", description: "Late-night demand spike" },
+    { id: "holiday", label: "Holiday surge", description: "Peak travel weekend" },
   ],
   "claim-resolve": [
     { id: "standard", label: "Standard ops", description: "Default policy thresholds" },

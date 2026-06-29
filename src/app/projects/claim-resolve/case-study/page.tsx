@@ -80,7 +80,7 @@ export default function ClaimResolveCaseStudyPage() {
         <Section icon={<Target className="h-5 w-5" />} title="Problem">
           <h3 className="text-lg font-semibold text-zinc-900">{cs.problem.headline}</h3>
           <p className="mt-3 leading-relaxed text-zinc-600">{cs.problem.body}</p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {cs.problem.stats.map((s) => (
               <div key={s.label} className="rounded-lg bg-emerald-50 px-4 py-3 text-center">
                 <div className="text-xl font-bold text-emerald-800">{s.value}</div>
@@ -161,6 +161,20 @@ export default function ClaimResolveCaseStudyPage() {
             ))}
           </ul>
         </Section>
+
+        {"nextSteps" in cs && cs.nextSteps && (
+          <Section icon={<ArrowUpRight className="h-5 w-5" />} title="Production roadmap">
+            <h3 className="text-lg font-semibold text-zinc-900">{cs.nextSteps.headline}</h3>
+            <ul className="mt-4 space-y-2">
+              {cs.nextSteps.items.map((item) => (
+                <li key={item} className="flex gap-2 text-zinc-600">
+                  <span className="text-emerald-500">→</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </Section>
+        )}
       </article>
     </div>
   );

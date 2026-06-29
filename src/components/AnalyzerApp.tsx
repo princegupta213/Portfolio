@@ -12,10 +12,11 @@ import {
 import type { AnalysisResult } from "@/lib/types";
 import { AnalysisDashboard } from "@/components/AnalysisDashboard";
 import {
-  AuditLogPanel,
+  EnterpriseAuditLog,
   ProjectDemoShell,
   type DemoMetric,
 } from "@/components/enterprise/ProjectDemoShell";
+import { EditableSection, AdminActionButton } from "@/components/enterprise/RbacControls";
 import { ENTERPRISE_SCENARIOS, PROJECT_THEMES } from "@/lib/project-themes";
 
 const THEME = PROJECT_THEMES["feedback-analyzer"];
@@ -178,7 +179,7 @@ export function AnalyzerApp() {
             onExportAudit={handleExportAudit}
           />
           <div className="mt-6">
-            <AuditLogPanel entries={auditLog} accentClass={THEME.accent} />
+            <EnterpriseAuditLog entries={auditLog} accentClass={THEME.accent} />
           </div>
         </>
       ) : (
@@ -205,6 +206,7 @@ export function AnalyzerApp() {
               onDragOver={(e) => e.preventDefault()}
               className={`rounded-2xl border-2 border-dashed border-zinc-200 bg-white p-12 text-center transition hover:border-violet-300 hover:bg-violet-50/30`}
             >
+              <EditableSection className="disabled:opacity-70">
               <Upload className="mx-auto h-12 w-12 text-zinc-400" />
               <p className="mt-4 text-lg font-medium text-zinc-900">Drop your CSV here</p>
               <p className="mt-1 text-sm text-zinc-500">
@@ -225,18 +227,18 @@ export function AnalyzerApp() {
                   }}
                 />
               </label>
+              </EditableSection>
             </div>
 
             <div className="mt-6 text-center">
-              <button
-                type="button"
+              <AdminActionButton
                 onClick={loadSample}
                 disabled={loading}
-                className={`text-sm font-medium ${THEME.accent} hover:opacity-80 disabled:opacity-50`}
+                className={`text-sm font-medium ${THEME.accent} hover:opacity-80`}
               >
                 Or analyze {getFeedbackScenario(scenario).reviews.length} sample{" "}
                 {getFeedbackScenario(scenario).label.toLowerCase()} reviews →
-              </button>
+              </AdminActionButton>
             </div>
 
             {loading && (
@@ -273,7 +275,7 @@ export function AnalyzerApp() {
 
           {auditLog.length > 0 && (
             <div className="mx-auto mt-8 max-w-3xl">
-              <AuditLogPanel entries={auditLog} accentClass={THEME.accent} />
+              <EnterpriseAuditLog entries={auditLog} accentClass={THEME.accent} />
             </div>
           )}
         </>

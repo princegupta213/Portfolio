@@ -10,9 +10,10 @@ import {
   Users,
 } from "lucide-react";
 import {
-  AuditLogPanel,
+  EnterpriseAuditLog,
   ProjectDemoShell,
 } from "@/components/enterprise/ProjectDemoShell";
+import { EditableSection, AdminActionButton } from "@/components/enterprise/RbacControls";
 import { ENTERPRISE_SCENARIOS, PROJECT_THEMES } from "@/lib/project-themes";
 import {
   DEFAULT_CONFIG,
@@ -158,7 +159,7 @@ export function DataSynthApp() {
     >
       <div className="grid gap-8 lg:grid-cols-3">
         <aside className="space-y-6 lg:col-span-1">
-          <div className="rounded-xl border border-zinc-200 bg-white p-6">
+          <EditableSection className="rounded-xl border border-zinc-200 bg-white p-6 disabled:opacity-70">
             <div className={`flex items-center gap-2 text-sm font-semibold ${theme.accent}`}>
               <Users className="h-4 w-4" />
               Persona configurator
@@ -259,7 +260,7 @@ export function DataSynthApp() {
                 />
               </div>
             )}
-          </div>
+          </EditableSection>
 
           {result && (
             <div className="grid gap-3">
@@ -287,7 +288,7 @@ export function DataSynthApp() {
             </div>
           )}
 
-          <AuditLogPanel entries={auditLog} accentClass={theme.accent} />
+          <EnterpriseAuditLog entries={auditLog} accentClass={theme.accent} />
         </aside>
 
         <main className="lg:col-span-2">
@@ -298,22 +299,20 @@ export function DataSynthApp() {
           ) : (
             <>
               <div className="mb-4 flex flex-wrap gap-2">
-                <button
-                  type="button"
+                <AdminActionButton
                   onClick={() => download("csv")}
                   className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
                 >
                   <Table className="h-4 w-4" />
                   Download CSV
-                </button>
-                <button
-                  type="button"
+                </AdminActionButton>
+                <AdminActionButton
                   onClick={() => download("json")}
                   className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
                 >
                   <FileJson className="h-4 w-4" />
                   Download JSON
-                </button>
+                </AdminActionButton>
                 <span className="flex items-center gap-1 text-xs text-zinc-500">
                   <Download className="h-3.5 w-3.5" />
                   {result.items.length} items ready

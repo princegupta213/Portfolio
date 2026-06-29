@@ -10,7 +10,8 @@ import {
   RotateCcw,
   SlidersHorizontal,
 } from "lucide-react";
-import { ProjectDemoShell } from "@/components/enterprise/ProjectDemoShell";
+import { ProjectDemoShell, EnterpriseAuditLog } from "@/components/enterprise/ProjectDemoShell";
+import { EditableSection, AdminActionButton } from "@/components/enterprise/RbacControls";
 import { ENTERPRISE_SCENARIOS, PROJECT_THEMES } from "@/lib/project-themes";
 import { DEFAULT_SURGE, runSimulation } from "@/lib/surge-sim/engine";
 import {
@@ -26,6 +27,10 @@ const HISTORY_MAX = 30;
 const theme = PROJECT_THEMES["surge-sim"];
 const scenarios = ENTERPRISE_SCENARIOS["surge-sim"] ?? [];
 
+function auditTime() {
+  return new Date().toLocaleTimeString("en-US", { hour12: false });
+}
+
 export function SurgeSimApp() {
   const [activeScenario, setActiveScenario] = useState("rush-hour");
   const [baseSupply, setBaseSupply] = useState(48);
@@ -38,6 +43,7 @@ export function SurgeSimApp() {
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
   const [history, setHistory] = useState<TimeSeriesPoint[]>([]);
   const [tick, setTick] = useState(0);
+  const [auditLog, setAuditLog] = useState<{ time: string; message: string }[]>([]);
 
   const result: SimulationResult = useMemo(
     () =>
@@ -76,6 +82,10 @@ export function SurgeSimApp() {
     setBaseDemand(preset.baseDemand);
     setWeather(preset.weather);
     setHistory([]);
+    setAuditLog((prev) => [
+      ...prev,
+      { time: auditTime(), message: `Scenario applied: ${preset.label}` },
+    ]);
   }, []);
 
   const reset = useCallback(() => {
@@ -194,26 +204,24 @@ export function SurgeSimApp() {
       )}
 
       <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
-        <button
-          type="button"
+        <AdminActionButton
           onClick={exportReport}
           className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
         >
           <Download className="h-4 w-4" />
           Export report
-        </button>
-        <button
-          type="button"
+        </AdminActionButton>
+        <AdminActionButton
           onClick={reset}
           className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50"
         >
           <RotateCcw className="h-3.5 w-3.5" />
           Reset
-        </button>
+        </AdminActionButton>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-3">
-        <aside className="space-y-5 lg:col-span-1">
+        <EditableSection className="space-y-5 lg:col-span-1 disabled:opacity-70">
           <ControlPanel
             title="Supply / Demand"
             icon={<SlidersHorizontal className={`h-4 w-4 ${theme.accent}`} />}
@@ -312,7 +320,8 @@ export function SurgeSimApp() {
               {live ? "On" : "Off"}
             </button>
           </div>
-        </aside>
+          <EnterpriseAuditLog entries={auditLog} accentClass={theme.accent} />
+        </EditableSection>
 
         <main className="space-y-6 lg:col-span-2">
           <SurgeSimGrid
