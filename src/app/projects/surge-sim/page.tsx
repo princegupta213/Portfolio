@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, BookOpen, FileText } from "lucide-react";
 import { SurgeSimApp } from "@/components/SurgeSimApp";
 
 export default function SurgeSimPage() {
@@ -14,6 +14,24 @@ export default function SurgeSimPage() {
             <ArrowLeft className="h-4 w-4" />
             Back to portfolio
           </Link>
+          <nav className="flex items-center gap-4">
+            <Link
+              href="/projects/surge-sim/case-study"
+              className="inline-flex items-center gap-1.5 text-sm text-zinc-600 hover:text-zinc-900"
+            >
+              <BookOpen className="h-4 w-4" />
+              Case study
+            </Link>
+            <a
+              href="/docs/surge-sim-PRD.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm text-zinc-600 hover:text-zinc-900"
+            >
+              <FileText className="h-4 w-4" />
+              PRD
+            </a>
+          </nav>
         </div>
       </header>
 

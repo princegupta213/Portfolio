@@ -228,6 +228,8 @@ export function SurgeSimApp() {
             onSelect={setSelectedZone}
             rows={rows}
             cols={cols}
+            surgeMin={surgeMin}
+            surgeMax={surgeMax}
           />
           <SurgeSimDashboard metrics={result.metrics} zones={result.zones} history={history} />
         </main>
