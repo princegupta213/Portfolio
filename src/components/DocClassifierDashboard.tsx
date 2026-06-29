@@ -11,11 +11,18 @@ import {
   PieChart,
   Pie,
 } from "recharts";
-import { ArrowLeft, Download, FileSearch, Layers, Target } from "lucide-react";
+import { ArrowLeft, Download, FileSearch, Layers, Target, Clock } from "lucide-react";
 import type { BatchClassificationResult } from "@/lib/doc-classifier/types";
+import {
+  type DocClassifierScenarioId,
+  getRoutingSla,
+} from "@/data/mock/doc-classifier";
+import { PROJECT_THEMES } from "@/lib/project-themes";
+
+const THEME = PROJECT_THEMES["doc-classifier"];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  invoice: "#6366f1",
+  invoice: "#0891b2",
   bank_statement: "#0ea5e9",
   resume: "#10b981",
   ITR: "#f59e0b",
@@ -32,10 +39,18 @@ const BUCKET_COLORS = {
 interface Props {
   result: BatchClassificationResult;
   fileName: string | null;
+  scenarioId?: DocClassifierScenarioId;
   onReset: () => void;
+  onExportAudit?: (message: string) => void;
 }
 
-export function DocClassifierDashboard({ result, fileName, onReset }: Props) {
+export function DocClassifierDashboard({
+  result,
+  fileName,
+  scenarioId,
+  onReset,
+  onExportAudit,
+}: Props) {
   const chartData = result.categoryBreakdown.map((c) => ({
     name: c.category,
     count: c.count,
@@ -49,8 +64,18 @@ export function DocClassifierDashboard({ result, fileName, onReset }: Props) {
       `**Documents:** ${result.totalDocuments}`,
       `**Date:** ${new Date(result.classifiedAt).toLocaleDateString()}`,
       `**Source:** ${fileName ?? "Unknown"}`,
+      `**Scenario:** ${scenarioId ?? "custom"}`,
       `**Avg confidence:** ${result.avgConfidence}%`,
       `**High confidence:** ${result.highConfidenceCount}/${result.totalDocuments}`,
+      "",
+      "## SLA routing queues",
+      "",
+      "| Category | Destination | Count | Priority | SLA |",
+      "|----------|-------------|-------|----------|-----|",
+      ...result.routingQueue.map((q) => {
+        const sla = getRoutingSla(q.routing);
+        return `| ${q.category} | ${q.routing} | ${q.count} | ${sla.priority} | ${sla.slaHours}h |`;
+      }),
       "",
       "## Results",
       "",
@@ -68,10 +93,40 @@ export function DocClassifierDashboard({ result, fileName, onReset }: Props) {
     a.download = "document-classification-report.md";
     a.click();
     URL.revokeObjectURL(url);
+    onExportAudit?.(
+      `Report exported · ${result.totalDocuments} docs · scenario=${scenarioId ?? "custom"}`
+    );
   };
 
+  const kpiCards = [
+    {
+      icon: <Layers className="h-5 w-5" />,
+      label: "Documents",
+      value: String(result.totalDocuments),
+      tone: THEME.statHighlight,
+    },
+    {
+      icon: <Target className="h-5 w-5" />,
+      label: "High confidence",
+      value: `${result.highConfidenceCount}/${result.totalDocuments}`,
+      tone: THEME.statHighlight,
+    },
+    {
+      icon: <FileSearch className="h-5 w-5" />,
+      label: "Avg confidence",
+      value: `${result.avgConfidence}%`,
+      tone: result.avgConfidence < 70 ? THEME.statWarn : THEME.statHighlight,
+    },
+    {
+      icon: <Clock className="h-5 w-5" />,
+      label: "Routing queues",
+      value: String(result.routingQueue.length),
+      tone: THEME.statHighlight,
+    },
+  ];
+
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10">
+    <div>
       <button
         type="button"
         onClick={onReset}
@@ -83,60 +138,65 @@ export function DocClassifierDashboard({ result, fileName, onReset }: Props) {
 
       <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-zinc-900">Classification results</h1>
+          <h2 className="text-2xl font-bold text-zinc-900">Classification results</h2>
           <p className="mt-1 text-sm text-zinc-500">{fileName}</p>
         </div>
         <button
           type="button"
           onClick={exportReport}
-          className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+          className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white ${THEME.accentMuted}`}
         >
           <Download className="h-4 w-4" />
           Export report
         </button>
       </div>
 
-      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          icon={<Layers className="h-5 w-5 text-violet-600" />}
-          label="Documents"
-          value={String(result.totalDocuments)}
-        />
-        <MetricCard
-          icon={<Target className="h-5 w-5 text-emerald-600" />}
-          label="High confidence"
-          value={`${result.highConfidenceCount}/${result.totalDocuments}`}
-        />
-        <MetricCard
-          icon={<FileSearch className="h-5 w-5 text-sky-600" />}
-          label="Avg confidence"
-          value={`${result.avgConfidence}%`}
-        />
-        <MetricCard
-          icon={<Layers className="h-5 w-5 text-amber-600" />}
-          label="Routing queues"
-          value={String(result.routingQueue.length)}
-        />
+      <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {kpiCards.map((kpi) => (
+          <div key={kpi.label} className={`rounded-xl border p-5 ${kpi.tone}`}>
+            <div className="flex items-center gap-2 opacity-90">{kpi.icon}</div>
+            <div className="mt-2 text-2xl font-bold">{kpi.value}</div>
+            <div className="text-sm opacity-80">{kpi.label}</div>
+          </div>
+        ))}
       </div>
 
       {result.routingQueue.length > 0 && (
-        <div className="mb-8 rounded-xl border border-violet-100 bg-violet-50/40 p-6">
-          <h2 className="mb-4 font-semibold text-zinc-900">Ops routing queue</h2>
+        <div className="mb-8 rounded-xl border border-cyan-200 bg-cyan-50/40 p-6">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-semibold text-zinc-900">SLA routing queue</h2>
+            <span className={`text-xs font-medium ${THEME.accent}`}>
+              Destinations · priority · turnaround
+            </span>
+          </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {result.routingQueue.map((q) => (
-              <div
-                key={q.category}
-                className="rounded-lg border border-white bg-white/80 px-4 py-3"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium text-zinc-900">{q.category}</span>
-                  <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs font-semibold text-violet-700">
-                    {q.count}
-                  </span>
+            {result.routingQueue.map((q) => {
+              const sla = getRoutingSla(q.routing);
+              return (
+                <div
+                  key={q.category}
+                  className="rounded-lg border border-white bg-white/90 px-4 py-3 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-medium text-zinc-900">{q.category}</span>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <span
+                        className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${sla.badgeClass}`}
+                      >
+                        {sla.priority}
+                      </span>
+                      <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-xs font-semibold text-cyan-800">
+                        {q.count}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="mt-1 text-xs text-zinc-500">→ {q.routing}</p>
+                  <p className={`mt-2 text-[11px] font-medium ${THEME.accent}`}>
+                    SLA: {sla.slaHours}h turnaround
+                  </p>
                 </div>
-                <p className="mt-1 text-xs text-zinc-500">→ {q.routing}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -231,28 +291,6 @@ export function DocClassifierDashboard({ result, fileName, onReset }: Props) {
               ))}
             </tbody>
           </table>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MetricCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-5">
-      <div className="flex items-center gap-3">
-        {icon}
-        <div>
-          <div className="text-2xl font-bold text-zinc-900">{value}</div>
-          <div className="text-sm text-zinc-500">{label}</div>
         </div>
       </div>
     </div>

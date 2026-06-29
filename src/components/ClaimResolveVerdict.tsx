@@ -27,7 +27,11 @@ import {
 } from "recharts";
 import type { ClaimDecision, SessionMetrics } from "@/lib/claim-resolve/types";
 import { getOrderAgeDays } from "@/lib/claim-resolve/orders";
+import { PROJECT_THEMES } from "@/lib/project-themes";
+import { ProjectDemoShell } from "@/components/enterprise/ProjectDemoShell";
 import { ClaimResolveFlowDiagram } from "@/components/ClaimResolveFlowDiagram";
+
+const theme = PROJECT_THEMES["claim-resolve"];
 
 const VERDICT_CONFIG = {
   approve: {
@@ -152,7 +156,7 @@ export function ClaimResolveVerdict({
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10">
+    <ProjectDemoShell theme={theme}>
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <button
           type="button"
@@ -467,7 +471,7 @@ export function ClaimResolveVerdict({
           </div>
         </div>
       )}
-    </div>
+    </ProjectDemoShell>
   );
 }
 

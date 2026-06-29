@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo, useState } from "react";
 import {
-  ShieldCheck,
   Settings2,
   FileInput,
   Play,
@@ -11,8 +10,9 @@ import {
   Loader2,
   Sparkles,
   AlertTriangle,
+  RotateCcw,
 } from "lucide-react";
-import { DEFAULT_POLICIES } from "@/lib/claim-resolve/policies";
+import { getPoliciesForScenario } from "@/lib/claim-resolve/scenarios";
 import { MOCK_ORDERS, REFUND_REASONS } from "@/lib/claim-resolve/orders";
 import {
   computeSessionMetrics,
@@ -25,8 +25,16 @@ import type {
   ClaimResolveTab,
   RefundPolicy,
 } from "@/lib/claim-resolve/types";
+import { PROJECT_THEMES, ENTERPRISE_SCENARIOS } from "@/lib/project-themes";
+import {
+  AuditLogPanel,
+  ProjectDemoShell,
+} from "@/components/enterprise/ProjectDemoShell";
 import { ClaimResolveVerdict } from "@/components/ClaimResolveVerdict";
 import { ClaimResolveFlowDiagram } from "@/components/ClaimResolveFlowDiagram";
+
+const theme = PROJECT_THEMES["claim-resolve"];
+const scenarios = ENTERPRISE_SCENARIOS["claim-resolve"] ?? [];
 
 const TABS: { id: ClaimResolveTab; label: string; icon: React.ReactNode }[] = [
   { id: "submit", label: "Submit Claim", icon: <FileInput className="h-4 w-4" /> },
@@ -43,9 +51,17 @@ const LOADING_STEPS = [
   "Drafting notification…",
 ];
 
+function auditTimestamp(): string {
+  return new Date().toLocaleTimeString("en-US", { hour12: false });
+}
+
 export function ClaimResolveApp() {
   const [tab, setTab] = useState<ClaimResolveTab>("submit");
-  const [policies, setPolicies] = useState<RefundPolicy[]>(DEFAULT_POLICIES);
+  const [scenario, setScenario] = useState("standard");
+  const [policies, setPolicies] = useState<RefundPolicy[]>(() =>
+    getPoliciesForScenario("standard")
+  );
+  const [auditLog, setAuditLog] = useState<{ time: string; message: string }[]>([]);
   const [email, setEmail] = useState("");
   const [orderId, setOrderId] = useState("");
   const [reason, setReason] = useState<string>(REASONS[0]);
@@ -54,6 +70,10 @@ export function ClaimResolveApp() {
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [batchResults, setBatchResults] = useState<ClaimDecision[] | null>(null);
+
+  const addAudit = useCallback((message: string) => {
+    setAuditLog((prev) => [...prev, { time: auditTimestamp(), message }]);
+  }, []);
 
   const sessionMetrics = useMemo(
     () => computeSessionMetrics(sessionDecisions),
@@ -75,20 +95,74 @@ export function ClaimResolveApp() {
 
   const batchPreview = useMemo(() => getDefaultBatchMetrics(policies), [policies]);
 
-  const runWithLoading = useCallback((fn: () => ClaimDecision) => {
-    setLoading(true);
-    setLoadingStep(0);
-    const interval = setInterval(() => {
-      setLoadingStep((s) => Math.min(s + 1, LOADING_STEPS.length - 1));
-    }, 200);
-    setTimeout(() => {
-      clearInterval(interval);
-      const result = fn();
-      setDecision(result);
-      setSessionDecisions((prev) => [...prev, result]);
-      setLoading(false);
-    }, 850);
-  }, []);
+  const shellMetrics = useMemo(
+    () => [
+      {
+        label: "Auto-Resolution Rate",
+        value: `${sessionMetrics.totalProcessed > 0 ? sessionMetrics.autoResolutionRate.toFixed(0) : batchPreview.autoResolutionRate.toFixed(0)}%`,
+        sublabel: "North star metric",
+      },
+      {
+        label: "False Refund Rate",
+        value: `${sessionMetrics.totalProcessed > 0 ? sessionMetrics.falseRefundRate.toFixed(1) : batchPreview.falseRefundRate.toFixed(1)}%`,
+        sublabel: "Guardrail",
+        warn:
+          (sessionMetrics.totalProcessed > 0
+            ? sessionMetrics.falseRefundRate
+            : batchPreview.falseRefundRate) > 0,
+      },
+      {
+        label: "Processed",
+        value: String(sessionMetrics.totalProcessed),
+        sublabel: "This session",
+      },
+      {
+        label: "Review queue",
+        value: String(
+          sessionMetrics.totalProcessed > 0
+            ? sessionMetrics.humanReviewCount
+            : batchPreview.humanReviewCount
+        ),
+      },
+    ],
+    [sessionMetrics, batchPreview]
+  );
+
+  const handleScenarioChange = useCallback(
+    (id: string) => {
+      setScenario(id);
+      setPolicies(getPoliciesForScenario(id));
+      const label = scenarios.find((s) => s.id === id)?.label ?? id;
+      addAudit(`Scenario → ${label} (policies loaded)`);
+    },
+    [addAudit]
+  );
+
+  const resetPolicies = () => {
+    setPolicies(getPoliciesForScenario(scenario));
+    addAudit("Policies reset to scenario defaults");
+  };
+
+  const runWithLoading = useCallback(
+    (fn: () => ClaimDecision) => {
+      setLoading(true);
+      setLoadingStep(0);
+      const interval = setInterval(() => {
+        setLoadingStep((s) => Math.min(s + 1, LOADING_STEPS.length - 1));
+      }, 200);
+      setTimeout(() => {
+        clearInterval(interval);
+        const result = fn();
+        setDecision(result);
+        setSessionDecisions((prev) => [...prev, result]);
+        addAudit(
+          `Claim ${result.submission.orderId} → ${result.verdict.replace("_", " ")} ($${result.order?.amountUsd.toFixed(2) ?? "0"})`
+        );
+        setLoading(false);
+      }, 850);
+    },
+    [addAudit]
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,8 +194,12 @@ export function ClaimResolveApp() {
         reason: REASONS[0],
       }));
       const results = runBatchDemo(policies, samples);
+      const metrics = computeSessionMetrics(results);
       setBatchResults(results);
       setSessionDecisions((prev) => [...prev, ...results]);
+      addAudit(
+        `Batch triage: ${results.length} claims · ${metrics.autoResolutionRate.toFixed(0)}% auto-resolved · ${metrics.humanReviewCount} review`
+      );
       setLoading(false);
     }, 900);
   };
@@ -179,36 +257,13 @@ export function ClaimResolveApp() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10">
-      <div className="mb-10 text-center">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-1.5 text-sm font-medium text-emerald-700">
-          <ShieldCheck className="h-4 w-4" />
-          Fintech · Customer Operations
-        </div>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
-          ClaimResolve
-        </h1>
-        <p className="mx-auto mt-3 max-w-2xl text-lg text-zinc-600">
-          Automated customer refund triage — evaluate claims against policy rules,
-          auto-approve or deny low-risk cases, and route edge cases to human review.
-        </p>
-        {sessionMetrics.totalProcessed > 0 && (
-          <div className="mx-auto mt-6 flex max-w-xl flex-wrap justify-center gap-4">
-            <MetricPill
-              label="Auto-Resolution Rate"
-              value={`${sessionMetrics.autoResolutionRate.toFixed(0)}%`}
-              highlight
-            />
-            <MetricPill
-              label="False Refund Rate"
-              value={`${sessionMetrics.falseRefundRate.toFixed(1)}%`}
-              warn={sessionMetrics.falseRefundRate > 0}
-            />
-            <MetricPill label="Processed" value={String(sessionMetrics.totalProcessed)} />
-          </div>
-        )}
-      </div>
-
+    <ProjectDemoShell
+      theme={theme}
+      metrics={shellMetrics}
+      scenarios={scenarios}
+      activeScenario={scenario}
+      onScenarioChange={handleScenarioChange}
+    >
       <div className="mb-8 flex flex-wrap justify-center gap-2">
         {TABS.map((t) => (
           <button
@@ -217,7 +272,7 @@ export function ClaimResolveApp() {
             onClick={() => setTab(t.id)}
             className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
               tab === t.id
-                ? "bg-emerald-600 text-white shadow-sm"
+                ? theme.tabActive
                 : "bg-white text-zinc-600 ring-1 ring-zinc-200 hover:bg-zinc-50"
             }`}
           >
@@ -230,9 +285,9 @@ export function ClaimResolveApp() {
       {loading && (
         <div className="mb-8 space-y-4">
           <ClaimResolveFlowDiagram activeStep={loadingStep} compact />
-          <div className="flex flex-col items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50/50 py-6">
-            <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
-            <p className="text-sm font-medium text-emerald-800">
+          <div className={`flex flex-col items-center gap-3 rounded-xl border ${theme.pill} py-6`}>
+            <Loader2 className={`h-8 w-8 animate-spin ${theme.accent}`} />
+            <p className={`text-sm font-medium ${theme.accent}`}>
               {LOADING_STEPS[loadingStep]}
             </p>
           </div>
@@ -269,7 +324,7 @@ export function ClaimResolveApp() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@email.com"
-                  className="w-full rounded-lg border border-zinc-200 px-3 py-2.5 text-sm outline-none ring-emerald-500 focus:ring-2"
+                  className={`w-full rounded-lg border border-zinc-200 px-3 py-2.5 text-sm outline-none focus:ring-2 ${theme.ring}`}
                   required
                 />
               </div>
@@ -283,7 +338,7 @@ export function ClaimResolveApp() {
                   value={orderId}
                   onChange={(e) => setOrderId(e.target.value)}
                   placeholder="ORD-1001"
-                  className="w-full rounded-lg border border-zinc-200 px-3 py-2.5 text-sm uppercase outline-none ring-emerald-500 focus:ring-2"
+                  className={`w-full rounded-lg border border-zinc-200 px-3 py-2.5 text-sm uppercase outline-none focus:ring-2 ${theme.ring}`}
                   required
                 />
               </div>
@@ -295,7 +350,7 @@ export function ClaimResolveApp() {
                   id="reason"
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-200 px-3 py-2.5 text-sm outline-none ring-emerald-500 focus:ring-2"
+                  className={`w-full rounded-lg border border-zinc-200 px-3 py-2.5 text-sm outline-none focus:ring-2 ${theme.ring}`}
                 >
                   {REASONS.map((r) => (
                     <option key={r} value={r}>
@@ -308,14 +363,14 @@ export function ClaimResolveApp() {
 
             <button
               type="submit"
-              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
+              className={`mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold text-white transition ${theme.accentMuted}`}
             >
               <Sparkles className="h-4 w-4" />
               Process refund claim
             </button>
 
             {livePreview && (
-              <div className="mt-4 rounded-lg border border-dashed border-emerald-200 bg-emerald-50/30 px-4 py-3 text-sm">
+              <div className={`mt-4 rounded-lg border border-dashed px-4 py-3 text-sm ${theme.pill}`}>
                 <span className="font-medium text-zinc-700">Live preview: </span>
                 <span
                   className={`font-semibold ${
@@ -353,7 +408,7 @@ export function ClaimResolveApp() {
                   <button
                     type="button"
                     onClick={() => fillSample(o.orderId)}
-                    className="w-full rounded-lg border border-zinc-100 px-3 py-2.5 text-left text-sm transition hover:border-emerald-200 hover:bg-emerald-50/50"
+                    className={`w-full rounded-lg border border-zinc-100 px-3 py-2.5 text-left text-sm transition hover:border-emerald-200 ${theme.pill}`}
                   >
                     <span className="font-mono font-medium text-zinc-800">{o.orderId}</span>
                     <span className="mt-0.5 block text-xs text-zinc-500">
@@ -370,10 +425,22 @@ export function ClaimResolveApp() {
 
       {!loading && tab === "policies" && (
         <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-1 text-lg font-semibold text-zinc-900">Policy configuration</h2>
-          <p className="mb-6 text-sm text-zinc-500">
-            Toggle rules and adjust thresholds — changes apply to the next claim processed.
-          </p>
+          <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h2 className="mb-1 text-lg font-semibold text-zinc-900">Policy configuration</h2>
+              <p className="text-sm text-zinc-500">
+                Toggle rules and adjust thresholds — changes apply to the next claim processed.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={resetPolicies}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reset to scenario defaults
+            </button>
+          </div>
           <ul className="divide-y divide-zinc-100">
             {policies.map((policy) => (
               <li key={policy.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -440,7 +507,7 @@ export function ClaimResolveApp() {
                       className="text-zinc-600 disabled:opacity-50"
                     >
                       {(policy.value as boolean) ? (
-                        <ToggleRight className="h-7 w-7 text-emerald-600" />
+                        <ToggleRight className={`h-7 w-7 ${theme.accent}`} />
                       ) : (
                         <ToggleLeft className="h-7 w-7" />
                       )}
@@ -452,7 +519,7 @@ export function ClaimResolveApp() {
                     aria-label={`Toggle ${policy.name}`}
                   >
                     {policy.enabled ? (
-                      <ToggleRight className="h-7 w-7 text-emerald-600" />
+                      <ToggleRight className={`h-7 w-7 ${theme.accent}`} />
                     ) : (
                       <ToggleLeft className="h-7 w-7 text-zinc-400" />
                     )}
@@ -479,15 +546,18 @@ export function ClaimResolveApp() {
               label="Projected auto-rate"
               value={`${batchPreview.autoResolutionRate.toFixed(0)}%`}
               highlight
+              theme={theme}
             />
             <MetricPill
               label="Projected false refund"
               value={`${batchPreview.falseRefundRate.toFixed(1)}%`}
               warn={batchPreview.falseRefundRate > 0}
+              theme={theme}
             />
             <MetricPill
               label="Review queue"
               value={String(batchPreview.humanReviewCount)}
+              theme={theme}
             />
           </div>
 
@@ -495,7 +565,7 @@ export function ClaimResolveApp() {
             <button
               type="button"
               onClick={runBatch}
-              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
+              className={`inline-flex items-center gap-2 rounded-lg px-6 py-3 text-sm font-semibold text-white ${theme.accentMuted}`}
             >
               <Play className="h-4 w-4" />
               Run batch triage
@@ -507,7 +577,11 @@ export function ClaimResolveApp() {
           </div>
         </div>
       )}
-    </div>
+
+      <div className="mt-8">
+        <AuditLogPanel entries={auditLog} accentClass={theme.accent} />
+      </div>
+    </ProjectDemoShell>
   );
 }
 
@@ -516,25 +590,23 @@ function MetricPill({
   value,
   highlight,
   warn,
+  theme,
 }: {
   label: string;
   value: string;
   highlight?: boolean;
   warn?: boolean;
+  theme: (typeof PROJECT_THEMES)[keyof typeof PROJECT_THEMES];
 }) {
   return (
     <div
       className={`rounded-lg px-4 py-2 text-center ${
-        warn
-          ? "bg-red-50 ring-1 ring-red-100"
-          : highlight
-            ? "bg-emerald-50 ring-1 ring-emerald-100"
-            : "bg-white ring-1 ring-zinc-200"
+        warn ? theme.statWarn : highlight ? theme.statHighlight : "bg-white ring-1 ring-zinc-200"
       }`}
     >
       <div
         className={`text-lg font-bold ${
-          warn ? "text-red-700" : highlight ? "text-emerald-700" : "text-zinc-800"
+          warn ? "text-red-700" : highlight ? theme.accent : "text-zinc-800"
         }`}
       >
         {value}

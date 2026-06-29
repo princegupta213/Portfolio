@@ -14,6 +14,7 @@ import {
   Shield,
   BookOpen,
   Loader2,
+  DollarSign,
 } from "lucide-react";
 import {
   BarChart,
@@ -23,14 +24,17 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { DEFAULT_POLICIES } from "@/lib/prompt-route/policies";
+import { MOCK_LLM_PROMPTS } from "@/data/mock/prompt-route";
+import {
+  getDailyBudgetCap,
+  getPoliciesForScenario,
+  getPromptsForScenario,
+} from "@/lib/prompt-route/scenarios";
 import { LLM_MODELS, getModel } from "@/lib/prompt-route/models";
 import {
   classifyPrompt,
   getClassificationScores,
-  SAMPLE_PROMPTS,
 } from "@/lib/prompt-route/classifier";
-import { MOCK_LLM_PROMPTS, MOCK_ROUTING_BATCH } from "@/data/mock/prompt-route";
 import { routeRequest } from "@/lib/prompt-route/router";
 import {
   runSimulation,
@@ -39,8 +43,16 @@ import {
 } from "@/lib/prompt-route/simulator";
 import { hashString } from "@/lib/prompt-route/seeded-random";
 import type { PromptRouteTab, RoutingPolicy, SimulationResult } from "@/lib/prompt-route/types";
+import { PROJECT_THEMES, ENTERPRISE_SCENARIOS } from "@/lib/project-themes";
+import {
+  AuditLogPanel,
+  ProjectDemoShell,
+} from "@/components/enterprise/ProjectDemoShell";
 import { PromptRouteDashboard } from "@/components/PromptRouteDashboard";
 import { PromptRouteFlowDiagram } from "@/components/PromptRouteFlowDiagram";
+
+const theme = PROJECT_THEMES["prompt-route"];
+const scenarios = ENTERPRISE_SCENARIOS["prompt-route"] ?? [];
 
 const TABS: { id: PromptRouteTab; label: string; icon: React.ReactNode }[] = [
   { id: "simulate", label: "Simulate", icon: <Play className="h-4 w-4" /> },
@@ -58,39 +70,93 @@ const LOADING_STEPS = [
 
 const SCORE_COLORS = ["#6366f1", "#0ea5e9", "#10b981", "#f59e0b", "#ec4899"];
 
+function auditTimestamp(): string {
+  return new Date().toLocaleTimeString("en-US", { hour12: false });
+}
+
 export function PromptRouteApp() {
   const [tab, setTab] = useState<PromptRouteTab>("simulate");
-  const [policies, setPolicies] = useState<RoutingPolicy[]>(DEFAULT_POLICIES);
+  const [scenario, setScenario] = useState("support");
+  const [policies, setPolicies] = useState<RoutingPolicy[]>(() =>
+    getPoliciesForScenario("support")
+  );
+  const [auditLog, setAuditLog] = useState<{ time: string; message: string }[]>([]);
+  const [dailySpendUsd, setDailySpendUsd] = useState(127.42);
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [customPrompt, setCustomPrompt] = useState("");
   const [classifierPreview, setClassifierPreview] = useState("");
 
-  const runWithLoading = useCallback((fn: () => SimulationResult) => {
-    setLoading(true);
-    setLoadingStep(0);
-    const interval = setInterval(() => {
-      setLoadingStep((s) => Math.min(s + 1, LOADING_STEPS.length - 1));
-    }, 180);
-    setTimeout(() => {
-      clearInterval(interval);
-      setResult(fn());
-      setLoading(false);
-    }, 750);
+  const budgetCap = getDailyBudgetCap(scenario);
+  const budgetUsedPct = Math.min(100, (dailySpendUsd / budgetCap) * 100);
+
+  const addAudit = useCallback((message: string) => {
+    setAuditLog((prev) => [...prev, { time: auditTimestamp(), message }]);
   }, []);
 
+  const recordSimulation = useCallback(
+    (simResult: SimulationResult, label: string) => {
+      setDailySpendUsd((prev) =>
+        Math.round((prev + simResult.metrics.totalRoutedCostUsd) * 100) / 100
+      );
+      addAudit(
+        `${label}: ${simResult.totalRequests} req · $${simResult.metrics.totalRoutedCostUsd.toFixed(4)} · ${simResult.metrics.costSavingsPct.toFixed(0)}% savings`
+      );
+    },
+    [addAudit]
+  );
+
+  const handleScenarioChange = useCallback(
+    (id: string) => {
+      setScenario(id);
+      setPolicies(getPoliciesForScenario(id));
+      const label = scenarios.find((s) => s.id === id)?.label ?? id;
+      addAudit(`Scenario → ${label} (policies + prompt set updated)`);
+    },
+    [addAudit]
+  );
+
+  const runWithLoading = useCallback(
+    (fn: () => SimulationResult, auditLabel: string) => {
+      setLoading(true);
+      setLoadingStep(0);
+      const interval = setInterval(() => {
+        setLoadingStep((s) => Math.min(s + 1, LOADING_STEPS.length - 1));
+      }, 180);
+      setTimeout(() => {
+        clearInterval(interval);
+        const simResult = fn();
+        recordSimulation(simResult, auditLabel);
+        setResult(simResult);
+        setLoading(false);
+      }, 750);
+    },
+    [recordSimulation]
+  );
+
+  const scenarioPrompts = useMemo(() => getPromptsForScenario(scenario), [scenario]);
+
   const runBatch = useCallback(() => {
-    runWithLoading(() => runSimulation({ prompts: SAMPLE_PROMPTS, policies, seeded: true }));
-  }, [policies, runWithLoading]);
+    runWithLoading(
+      () => runSimulation({ prompts: scenarioPrompts, policies, seeded: true }),
+      "Batch simulation"
+    );
+  }, [policies, runWithLoading, scenarioPrompts]);
 
   const runCustom = useCallback(() => {
     if (!customPrompt.trim()) return;
-    runWithLoading(() => simulateSinglePrompt(customPrompt.trim(), policies));
+    runWithLoading(
+      () => simulateSinglePrompt(customPrompt.trim(), policies),
+      "Single prompt route"
+    );
   }, [customPrompt, policies, runWithLoading]);
 
   const runFailoverDemo = useCallback(() => {
-    runWithLoading(() => simulateFailoverScenario(policies));
+    runWithLoading(
+      () => simulateFailoverScenario(policies),
+      "Failover drill"
+    );
   }, [policies, runWithLoading]);
 
   const togglePolicy = (id: string) => {
@@ -110,31 +176,79 @@ export function PromptRouteApp() {
     return { classification, route };
   }, [customPrompt, policies]);
 
+  const shellMetrics = useMemo(
+    () => [
+      {
+        label: "Daily spend",
+        value: `$${dailySpendUsd.toFixed(2)}`,
+        sublabel: `of $${budgetCap.toFixed(0)} cap`,
+        warn: budgetUsedPct >= 85,
+      },
+      {
+        label: "Budget used",
+        value: `${budgetUsedPct.toFixed(0)}%`,
+        sublabel: "Rolling 24h window",
+        warn: budgetUsedPct >= 85,
+      },
+      {
+        label: "Active policies",
+        value: String(policies.filter((p) => p.enabled).length),
+        sublabel: `${policies.length} total rules`,
+      },
+      {
+        label: "Scenario prompts",
+        value: String(scenarioPrompts.length),
+        sublabel: "Sample batch size",
+      },
+    ],
+    [dailySpendUsd, budgetCap, budgetUsedPct, policies, scenarioPrompts.length]
+  );
+
   if (result) {
     return <PromptRouteDashboard result={result} onReset={() => setResult(null)} />;
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10">
-      <div className="mb-10 text-center">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-1.5 text-sm font-medium text-indigo-700">
-          <Route className="h-4 w-4" />
-          Platform & Core Infrastructure
-        </div>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900 sm:text-4xl">
-          PromptRoute
-        </h1>
-        <p className="mx-auto mt-3 max-w-2xl text-zinc-600">
-          Intelligent multi-LLM router that classifies task complexity, routes to the cheapest
-          capable model, and simulates fallback on rate limits — with PM-grade cost & latency analytics.
-        </p>
+    <ProjectDemoShell
+      theme={theme}
+      metrics={shellMetrics}
+      scenarios={scenarios}
+      activeScenario={scenario}
+      onScenarioChange={handleScenarioChange}
+      footer={
         <Link
           href="/projects/prompt-route/case-study"
-          className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800"
+          className={`inline-flex items-center gap-1.5 font-medium ${theme.accent} hover:opacity-80`}
         >
           <BookOpen className="h-4 w-4" />
           Read case study
         </Link>
+      }
+    >
+      <div className="mb-6 rounded-xl border border-zinc-200 bg-white p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <DollarSign className={`h-5 w-5 ${theme.accent}`} />
+            <div>
+              <p className="text-sm font-semibold text-zinc-900">Daily budget cap</p>
+              <p className="text-xs text-zinc-500">Mock spend tracker for routing simulations</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className={`text-lg font-bold ${budgetUsedPct >= 85 ? "text-amber-700" : theme.accent}`}>
+              ${dailySpendUsd.toFixed(2)} / ${budgetCap.toFixed(0)}
+            </p>
+            <p className="text-xs text-zinc-500">{budgetUsedPct.toFixed(0)}% utilized</p>
+          </div>
+        </div>
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-100">
+          <div
+            className={`h-full transition-all duration-500 ${
+              budgetUsedPct >= 85 ? "bg-amber-500" : "bg-indigo-600"
+            }`}
+            style={{ width: `${budgetUsedPct}%` }}
+          />
+        </div>
       </div>
 
       <div className="mb-8 flex flex-wrap justify-center gap-2">
@@ -145,7 +259,7 @@ export function PromptRouteApp() {
             onClick={() => setTab(t.id)}
             className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
               tab === t.id
-                ? "bg-indigo-600 text-white"
+                ? theme.tabActive
                 : "bg-white text-zinc-600 ring-1 ring-zinc-200 hover:bg-zinc-50"
             }`}
           >
@@ -156,8 +270,8 @@ export function PromptRouteApp() {
       </div>
 
       {loading && (
-        <div className="mb-6 flex items-center justify-center gap-3 rounded-xl border border-indigo-100 bg-indigo-50 px-6 py-4 text-sm font-medium text-indigo-800">
-          <Loader2 className="h-4 w-4 animate-spin" />
+        <div className={`mb-6 flex items-center justify-center gap-3 rounded-xl border px-6 py-4 text-sm font-medium ${theme.pill}`}>
+          <Loader2 className={`h-4 w-4 animate-spin ${theme.accent}`} />
           {LOADING_STEPS[loadingStep]}
         </div>
       )}
@@ -167,21 +281,23 @@ export function PromptRouteApp() {
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="rounded-xl border border-zinc-200 bg-white p-6">
               <div className="mb-4 flex items-center gap-2">
-                <Zap className="h-5 w-5 text-indigo-600" />
+                <Zap className={`h-5 w-5 ${theme.accent}`} />
                 <h2 className="font-semibold text-zinc-900">Batch Simulation</h2>
               </div>
               <p className="mb-4 text-sm text-zinc-600">
-                Run {MOCK_ROUTING_BATCH.promptCount} diverse prompts — chat, code, summarization,
-                extraction, and reasoning — with deterministic routing and simulated 429 failover.
+                Run {scenarioPrompts.length} prompts for the{" "}
+                <span className="font-medium">{scenarios.find((s) => s.id === scenario)?.label}</span>{" "}
+                scenario — chat, code, summarization, extraction, and reasoning workloads with
+                deterministic routing and simulated 429 failover.
               </p>
               <button
                 type="button"
                 onClick={runBatch}
                 disabled={loading}
-                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+                className={`inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium text-white disabled:opacity-50 ${theme.accentMuted}`}
               >
                 <Play className="h-4 w-4" />
-                Run sample batch
+                Run sample batch ({scenarioPrompts.length})
               </button>
             </div>
 
@@ -195,7 +311,7 @@ export function PromptRouteApp() {
                 onChange={(e) => setCustomPrompt(e.target.value)}
                 placeholder="Paste an LLM prompt to classify and route…"
                 rows={4}
-                className="mb-3 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-800 placeholder:text-zinc-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                className={`mb-3 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:ring-2 ${theme.ring}`}
               />
               {livePreview && (
                 <div className="mb-3">
@@ -216,16 +332,20 @@ export function PromptRouteApp() {
                 Route & analyze
               </button>
               <div className="mt-3 flex flex-wrap gap-2">
-                {MOCK_LLM_PROMPTS.slice(0, 4).map((p) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => setCustomPrompt(p.prompt)}
-                    className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-600 hover:bg-indigo-50 hover:text-indigo-700"
-                  >
-                    {p.label}
-                  </button>
-                ))}
+                {MOCK_LLM_PROMPTS.filter((p) =>
+                  getPromptsForScenario(scenario).includes(p.prompt)
+                )
+                  .slice(0, 4)
+                  .map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setCustomPrompt(p.prompt)}
+                      className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-zinc-200 hover:ring-indigo-200 ${theme.pill}`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
               </div>
             </div>
           </div>
@@ -284,7 +404,7 @@ export function PromptRouteApp() {
               onChange={(e) => setClassifierPreview(e.target.value)}
               placeholder="Enter a prompt to see how the classifier scores it…"
               rows={5}
-              className="mb-4 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+              className={`mb-4 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 ${theme.ring}`}
             />
             {classifierPreview.trim() ? (
               <ClassifierPreview prompt={classifierPreview} />
@@ -298,7 +418,7 @@ export function PromptRouteApp() {
                     onClick={() => setClassifierPreview(p.prompt)}
                     className="block w-full rounded-lg border border-zinc-100 bg-zinc-50 px-3 py-2 text-left text-sm text-zinc-700 hover:bg-zinc-100"
                   >
-                    <span className="rounded bg-indigo-100 px-1.5 py-0.5 text-xs font-medium text-indigo-700">
+                    <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${theme.pill}`}>
                       {p.label}
                     </span>
                     <span className="mt-1 block truncate text-zinc-600">{p.prompt}</span>
@@ -364,7 +484,11 @@ export function PromptRouteApp() {
           </div>
         </div>
       )}
-    </div>
+
+      <div className="mt-8">
+        <AuditLogPanel entries={auditLog} accentClass={theme.accent} />
+      </div>
+    </ProjectDemoShell>
   );
 }
 

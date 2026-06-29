@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -19,8 +20,18 @@ import {
   Layers,
   Target,
   AlertCircle,
+  Users,
+  Wrench,
 } from "lucide-react";
 import type { AnalysisResult } from "@/lib/types";
+import {
+  type FeedbackScenarioId,
+  type StakeholderView,
+  STAKEHOLDER_THEME_FILTER,
+} from "@/data/mock/feedback-scenarios";
+import { PROJECT_THEMES } from "@/lib/project-themes";
+
+const THEME = PROJECT_THEMES["feedback-analyzer"];
 
 const PRIORITY_COLORS: Record<string, string> = {
   P0: "#ef4444",
@@ -34,11 +45,26 @@ const SENTIMENT_COLORS = ["#22c55e", "#94a3b8", "#ef4444"];
 interface Props {
   result: AnalysisResult;
   fileName: string | null;
+  scenarioId?: FeedbackScenarioId;
   onReset: () => void;
+  onExportAudit?: (message: string) => void;
 }
 
-export function AnalysisDashboard({ result, fileName, onReset }: Props) {
+export function AnalysisDashboard({
+  result,
+  fileName,
+  scenarioId,
+  onReset,
+  onExportAudit,
+}: Props) {
+  const [stakeholderView, setStakeholderView] = useState<StakeholderView>("pm");
   const { overallSentiment, themes, opportunities, topPainPoints, summary } = result;
+
+  const themeIdsForView = STAKEHOLDER_THEME_FILTER[stakeholderView];
+  const filteredOpportunities = opportunities.filter((o) => {
+    const themeId = o.id.replace("opp-", "");
+    return themeIdsForView.includes(themeId);
+  });
 
   const sentimentData = [
     { name: "Positive", value: overallSentiment.positive },
@@ -53,12 +79,15 @@ export function AnalysisDashboard({ result, fileName, onReset }: Props) {
   }));
 
   const exportReport = () => {
+    const exportOpps = filteredOpportunities.length > 0 ? filteredOpportunities : opportunities;
     const lines = [
       "# Product Feedback Analysis Report",
       "",
       `**Analyzed:** ${result.totalReviews} reviews`,
       `**Date:** ${new Date(result.analyzedAt).toLocaleDateString()}`,
       `**Source:** ${fileName ?? "Unknown"}`,
+      `**Scenario:** ${scenarioId ?? "custom"}`,
+      `**Stakeholder view:** ${stakeholderView === "pm" ? "Product Management" : "Engineering"}`,
       "",
       "## Executive Summary",
       summary,
@@ -70,7 +99,7 @@ export function AnalysisDashboard({ result, fileName, onReset }: Props) {
       "",
       "| Priority | Initiative | Theme | ICE | Impact | Confidence | Effort | Evidence |",
       "|----------|------------|-------|-----|--------|------------|--------|----------|",
-      ...opportunities.map(
+      ...exportOpps.map(
         (o) =>
           `| ${o.priority} | ${o.title} | ${o.theme} | ${o.iceScore} | ${o.impact} | ${o.confidence} | ${o.effort} | ${o.evidenceCount} |`
       ),
@@ -90,18 +119,49 @@ export function AnalysisDashboard({ result, fileName, onReset }: Props) {
     a.download = "feedback-analysis-report.md";
     a.click();
     URL.revokeObjectURL(url);
+    onExportAudit?.(
+      `Report exported · ${exportOpps.length} initiatives · view=${stakeholderView} · ${fileName ?? "unknown"}`
+    );
   };
 
   const totalSentiment =
     overallSentiment.positive + overallSentiment.neutral + overallSentiment.negative;
-  const negPct = totalSentiment > 0
-    ? Math.round((overallSentiment.negative / totalSentiment) * 100)
-    : 0;
+  const negPct =
+    totalSentiment > 0 ? Math.round((overallSentiment.negative / totalSentiment) * 100) : 0;
+  const p0Count = opportunities.filter((o) => o.priority === "P0").length;
+
+  const kpiCards = [
+    {
+      icon: <Layers className="h-5 w-5" />,
+      label: "Reviews analyzed",
+      value: result.totalReviews.toString(),
+      tone: THEME.statHighlight,
+    },
+    {
+      icon: <TrendingDown className="h-5 w-5" />,
+      label: "Negative sentiment",
+      value: `${negPct}%`,
+      tone: negPct >= 40 ? THEME.statWarn : THEME.statHighlight,
+    },
+    {
+      icon: <Target className="h-5 w-5" />,
+      label: "Themes detected",
+      value: themes.length.toString(),
+      tone: THEME.statHighlight,
+    },
+    {
+      icon: <AlertCircle className="h-5 w-5" />,
+      label: "P0 initiatives",
+      value: p0Count.toString(),
+      tone: p0Count > 0 ? THEME.statWarn : THEME.statHighlight,
+    },
+  ];
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10">
+    <div>
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <button
+          type="button"
           onClick={onReset}
           className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600 hover:text-zinc-900"
         >
@@ -109,8 +169,9 @@ export function AnalysisDashboard({ result, fileName, onReset }: Props) {
           New analysis
         </button>
         <button
+          type="button"
           onClick={exportReport}
-          className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+          className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white ${THEME.accentMuted}`}
         >
           <Download className="h-4 w-4" />
           Export report
@@ -118,30 +179,17 @@ export function AnalysisDashboard({ result, fileName, onReset }: Props) {
       </div>
 
       <div className="mb-2 text-sm text-zinc-500">{fileName}</div>
-      <h1 className="text-3xl font-bold text-zinc-900">Analysis Results</h1>
+      <h2 className="text-2xl font-bold text-zinc-900">Analysis results</h2>
       <p className="mt-2 max-w-3xl text-zinc-600">{summary}</p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          icon={<Layers className="h-5 w-5 text-indigo-600" />}
-          label="Reviews analyzed"
-          value={result.totalReviews.toString()}
-        />
-        <StatCard
-          icon={<TrendingDown className="h-5 w-5 text-red-500" />}
-          label="Negative sentiment"
-          value={`${negPct}%`}
-        />
-        <StatCard
-          icon={<Target className="h-5 w-5 text-amber-600" />}
-          label="Themes detected"
-          value={themes.length.toString()}
-        />
-        <StatCard
-          icon={<AlertCircle className="h-5 w-5 text-orange-600" />}
-          label="P0 initiatives"
-          value={opportunities.filter((o) => o.priority === "P0").length.toString()}
-        />
+      <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {kpiCards.map((kpi) => (
+          <div key={kpi.label} className={`rounded-xl border p-5 ${kpi.tone}`}>
+            <div className="flex items-center gap-2 opacity-90">{kpi.icon}</div>
+            <div className="mt-2 text-2xl font-bold">{kpi.value}</div>
+            <div className="text-sm opacity-80">{kpi.label}</div>
+          </div>
+        ))}
       </div>
 
       <div className="mt-10 grid gap-6 lg:grid-cols-2">
@@ -149,19 +197,12 @@ export function AnalysisDashboard({ result, fileName, onReset }: Props) {
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={themeChartData} layout="vertical" margin={{ left: 8, right: 16 }}>
               <XAxis type="number" tick={{ fontSize: 12 }} />
-              <YAxis
-                type="category"
-                dataKey="name"
-                width={120}
-                tick={{ fontSize: 11 }}
-              />
+              <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 11 }} />
               <Tooltip
                 formatter={(value) => [value, "Mentions"]}
-                labelFormatter={(_, payload) =>
-                  payload?.[0]?.payload?.fullName ?? ""
-                }
+                labelFormatter={(_, payload) => payload?.[0]?.payload?.fullName ?? ""}
               />
-              <Bar dataKey="count" fill="#6366f1" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="count" fill="#7c3aed" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -193,9 +234,32 @@ export function AnalysisDashboard({ result, fileName, onReset }: Props) {
       </div>
 
       <section className="mt-12">
-        <h2 className="text-xl font-bold text-zinc-900">Prioritized roadmap</h2>
-        <p className="mt-1 text-sm text-zinc-500">
-          Ranked by ICE score (Impact × Confidence ÷ Effort)
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-zinc-900">Prioritized roadmap</h2>
+            <p className="mt-1 text-sm text-zinc-500">
+              Ranked by ICE score (Impact × Confidence ÷ Effort)
+            </p>
+          </div>
+          <div className="flex gap-1 rounded-lg border border-zinc-200 bg-zinc-100 p-1">
+            <StakeholderToggle
+              active={stakeholderView === "pm"}
+              onClick={() => setStakeholderView("pm")}
+              icon={<Users className="h-3.5 w-3.5" />}
+              label="PM view"
+            />
+            <StakeholderToggle
+              active={stakeholderView === "engineering"}
+              onClick={() => setStakeholderView("engineering")}
+              icon={<Wrench className="h-3.5 w-3.5" />}
+              label="Engineering"
+            />
+          </div>
+        </div>
+        <p className="mt-2 text-xs text-zinc-500">
+          {stakeholderView === "pm"
+            ? "Showing product themes: pricing, features, UX, onboarding, support"
+            : "Showing platform themes: performance, auth, sync, search, notifications"}
         </p>
         <div className="mt-4 overflow-x-auto rounded-xl border border-zinc-200 bg-white">
           <table className="w-full min-w-[720px] text-left text-sm">
@@ -210,28 +274,30 @@ export function AnalysisDashboard({ result, fileName, onReset }: Props) {
               </tr>
             </thead>
             <tbody>
-              {opportunities.map((opp) => (
-                <tr key={opp.id} className="border-b border-zinc-50 hover:bg-zinc-50/50">
-                  <td className="px-4 py-3">
-                    <span
-                      className="inline-block rounded px-2 py-0.5 text-xs font-bold text-white"
-                      style={{ backgroundColor: PRIORITY_COLORS[opp.priority] }}
-                    >
-                      {opp.priority}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-zinc-900">{opp.title}</div>
-                    <div className="mt-0.5 text-xs text-zinc-500">{opp.problemStatement}</div>
-                  </td>
-                  <td className="px-4 py-3 text-zinc-600">{opp.theme}</td>
-                  <td className="px-4 py-3 font-semibold text-indigo-600">{opp.iceScore}</td>
-                  <td className="px-4 py-3 text-zinc-500">
-                    {opp.impact} / {opp.confidence} / {opp.effort}
-                  </td>
-                  <td className="px-4 py-3 text-zinc-600">{opp.evidenceCount}</td>
-                </tr>
-              ))}
+              {(filteredOpportunities.length > 0 ? filteredOpportunities : opportunities).map(
+                (opp) => (
+                  <tr key={opp.id} className="border-b border-zinc-50 hover:bg-zinc-50/50">
+                    <td className="px-4 py-3">
+                      <span
+                        className="inline-block rounded px-2 py-0.5 text-xs font-bold text-white"
+                        style={{ backgroundColor: PRIORITY_COLORS[opp.priority] }}
+                      >
+                        {opp.priority}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-zinc-900">{opp.title}</div>
+                      <div className="mt-0.5 text-xs text-zinc-500">{opp.problemStatement}</div>
+                    </td>
+                    <td className="px-4 py-3 text-zinc-600">{opp.theme}</td>
+                    <td className={`px-4 py-3 font-semibold ${THEME.accent}`}>{opp.iceScore}</td>
+                    <td className="px-4 py-3 text-zinc-500">
+                      {opp.impact} / {opp.confidence} / {opp.effort}
+                    </td>
+                    <td className="px-4 py-3 text-zinc-600">{opp.evidenceCount}</td>
+                  </tr>
+                )
+              )}
             </tbody>
           </table>
         </div>
@@ -241,13 +307,10 @@ export function AnalysisDashboard({ result, fileName, onReset }: Props) {
         <h2 className="text-xl font-bold text-zinc-900">Theme deep dive</h2>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           {themes.map((theme) => (
-            <div
-              key={theme.id}
-              className="rounded-xl border border-zinc-200 bg-white p-5"
-            >
+            <div key={theme.id} className="rounded-xl border border-zinc-200 bg-white p-5">
               <div className="flex items-start justify-between">
                 <h3 className="font-semibold text-zinc-900">{theme.name}</h3>
-                <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ${THEME.pill}`}>
                   {theme.count} mentions · {theme.percentage}%
                 </span>
               </div>
@@ -270,7 +333,7 @@ export function AnalysisDashboard({ result, fileName, onReset }: Props) {
                 </div>
               )}
               {theme.sampleQuotes[0] && (
-                <blockquote className="mt-3 border-l-2 border-indigo-200 pl-3 text-sm italic text-zinc-600">
+                <blockquote className="mt-3 border-l-2 border-violet-200 pl-3 text-sm italic text-zinc-600">
                   &ldquo;{theme.sampleQuotes[0]}&rdquo;
                 </blockquote>
               )}
@@ -282,21 +345,28 @@ export function AnalysisDashboard({ result, fileName, onReset }: Props) {
   );
 }
 
-function StatCard({
+function StakeholderToggle({
+  active,
+  onClick,
   icon,
   label,
-  value,
 }: {
+  active: boolean;
+  onClick: () => void;
   icon: React.ReactNode;
   label: string;
-  value: string;
 }) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-5">
-      <div className="flex items-center gap-2">{icon}</div>
-      <div className="mt-3 text-2xl font-bold text-zinc-900">{value}</div>
-      <div className="text-sm text-zinc-500">{label}</div>
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition ${
+        active ? THEME.tabActive : "text-zinc-600 hover:text-zinc-900"
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
   );
 }
 
