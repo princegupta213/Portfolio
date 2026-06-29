@@ -2,25 +2,34 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  AlertTriangle,
   CloudRain,
+  Download,
   Gauge,
   Map,
   RotateCcw,
   SlidersHorizontal,
-  Zap,
 } from "lucide-react";
+import { ProjectDemoShell } from "@/components/enterprise/ProjectDemoShell";
+import { ENTERPRISE_SCENARIOS, PROJECT_THEMES } from "@/lib/project-themes";
 import { DEFAULT_SURGE, runSimulation } from "@/lib/surge-sim/engine";
-import { SURGE_SIM_PRESETS } from "@/data/mock/surge-sim";
+import {
+  ENTERPRISE_SURGE_PRESETS,
+  SLA_ABANDONMENT_THRESHOLD,
+} from "@/data/mock/surge-sim";
 import { WEATHER_EVENTS } from "@/lib/surge-sim/weather";
 import type { SimulationResult, TimeSeriesPoint, WeatherEvent } from "@/lib/surge-sim/types";
 import { SurgeSimDashboard } from "@/components/SurgeSimDashboard";
 import { SurgeSimGrid, getGridDimensions } from "@/components/SurgeSimGrid";
 
 const HISTORY_MAX = 30;
+const theme = PROJECT_THEMES["surge-sim"];
+const scenarios = ENTERPRISE_SCENARIOS["surge-sim"] ?? [];
 
 export function SurgeSimApp() {
-  const [baseSupply, setBaseSupply] = useState(50);
-  const [baseDemand, setBaseDemand] = useState(55);
+  const [activeScenario, setActiveScenario] = useState("rush-hour");
+  const [baseSupply, setBaseSupply] = useState(48);
+  const [baseDemand, setBaseDemand] = useState(72);
   const [weather, setWeather] = useState<WeatherEvent>("clear");
   const [surgeMin, setSurgeMin] = useState(DEFAULT_SURGE.minMultiplier);
   const [surgeMax, setSurgeMax] = useState(DEFAULT_SURGE.maxMultiplier);
@@ -59,9 +68,10 @@ export function SurgeSimApp() {
     return () => clearInterval(id);
   }, [live]);
 
-  const applyPreset = useCallback((id: string) => {
-    const preset = SURGE_SIM_PRESETS.find((p) => p.id === id);
+  const applyScenario = useCallback((id: string) => {
+    const preset = ENTERPRISE_SURGE_PRESETS.find((p) => p.id === id);
     if (!preset) return;
+    setActiveScenario(id);
     setBaseSupply(preset.baseSupply);
     setBaseDemand(preset.baseDemand);
     setWeather(preset.weather);
@@ -69,73 +79,152 @@ export function SurgeSimApp() {
   }, []);
 
   const reset = useCallback(() => {
-    setBaseSupply(50);
-    setBaseDemand(55);
-    setWeather("clear");
+    applyScenario("rush-hour");
     setSurgeMin(DEFAULT_SURGE.minMultiplier);
     setSurgeMax(DEFAULT_SURGE.maxMultiplier);
     setSurgeSensitivity(DEFAULT_SURGE.sensitivity);
-    setHistory([]);
     setSelectedZone(null);
-  }, []);
+  }, [applyScenario]);
+
+  const slaBreached = result.metrics.checkoutAbandonmentRate > SLA_ABANDONMENT_THRESHOLD;
+
+  const metrics = useMemo(
+    () => [
+      {
+        label: "Order match rate",
+        value: `${result.metrics.orderMatchRate.toFixed(1)}%`,
+        sublabel: "North star metric",
+      },
+      {
+        label: "Checkout abandonment",
+        value: `${result.metrics.checkoutAbandonmentRate.toFixed(1)}%`,
+        sublabel: `SLA guardrail < ${SLA_ABANDONMENT_THRESHOLD}%`,
+        warn: slaBreached,
+      },
+      {
+        label: "Avg surge multiplier",
+        value: `${result.metrics.avgSurgeMultiplier.toFixed(2)}x`,
+        sublabel: "Pricing pressure",
+      },
+      {
+        label: "Avg wait time",
+        value: `${result.metrics.avgWaitMinutes.toFixed(1)} min`,
+        sublabel: "Customer experience",
+      },
+    ],
+    [result.metrics, slaBreached]
+  );
+
+  const exportReport = () => {
+    const topZones = [...result.zones]
+      .sort((a, b) => b.surgeMultiplier - a.surgeMultiplier)
+      .slice(0, 5);
+    const scenarioLabel =
+      scenarios.find((s) => s.id === activeScenario)?.label ?? activeScenario;
+
+    const lines = [
+      "# SurgeSim Simulation Report",
+      "",
+      `**Scenario:** ${scenarioLabel}`,
+      `**Date:** ${new Date(result.simulatedAt).toLocaleString()}`,
+      `**Weather:** ${result.weather.label}`,
+      "",
+      "## Key Metrics",
+      "",
+      "| Metric | Value |",
+      "|--------|-------|",
+      `| Order match rate | ${result.metrics.orderMatchRate.toFixed(1)}% |`,
+      `| Checkout abandonment | ${result.metrics.checkoutAbandonmentRate.toFixed(1)}% |`,
+      `| SLA threshold | ${SLA_ABANDONMENT_THRESHOLD}% |`,
+      `| SLA status | ${slaBreached ? "BREACH" : "OK"} |`,
+      `| Avg surge multiplier | ${result.metrics.avgSurgeMultiplier.toFixed(2)}x |`,
+      `| Avg wait time | ${result.metrics.avgWaitMinutes.toFixed(1)} min |`,
+      `| Driver accept rate | ${(result.metrics.avgDriverAcceptRate * 100).toFixed(0)}% |`,
+      "",
+      "## Surge Configuration",
+      "",
+      `- Min multiplier: ${surgeMin.toFixed(1)}x`,
+      `- Max multiplier: ${surgeMax.toFixed(1)}x`,
+      `- Sensitivity: ${(surgeSensitivity * 100).toFixed(0)}%`,
+      `- Base supply: ${baseSupply}`,
+      `- Base demand: ${baseDemand}`,
+      "",
+      "## Highest Surge Zones",
+      "",
+      "| Zone | Surge | Imbalance |",
+      "|------|-------|-----------|",
+      ...topZones.map(
+        (z) =>
+          `| ${z.name} | ${z.surgeMultiplier.toFixed(2)}x | ${z.imbalanceRatio.toFixed(2)}x |`
+      ),
+    ];
+
+    const blob = new Blob([lines.join("\n")], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "surgesim-report.md";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const { rows, cols } = getGridDimensions(result.zones);
   const weatherInfo = result.weather;
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10">
-      <div className="mb-8">
-        <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
-          <Zap className="h-3.5 w-3.5" />
-          Marketplaces & Gig Economy
+    <ProjectDemoShell
+      theme={theme}
+      metrics={metrics}
+      scenarios={scenarios}
+      activeScenario={activeScenario}
+      onScenarioChange={applyScenario}
+    >
+      {slaBreached && (
+        <div className={`mb-6 flex items-start gap-3 rounded-xl border p-4 ${theme.statWarn}`}>
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+          <div>
+            <p className="font-semibold">SLA breach — checkout abandonment elevated</p>
+            <p className="mt-1 text-sm opacity-90">
+              Abandonment at {result.metrics.checkoutAbandonmentRate.toFixed(1)}% exceeds the{" "}
+              {SLA_ABANDONMENT_THRESHOLD}% guardrail. Consider lowering max surge or increasing
+              supply in hot zones.
+            </p>
+          </div>
         </div>
-        <h1 className="mt-4 text-3xl font-bold tracking-tight text-zinc-900">SurgeSim</h1>
-        <p className="mt-2 max-w-2xl text-zinc-600">
-          Dynamic price & supply elasticity dashboard — adjust drivers vs. customer demand, tweak surge
-          limits, and watch match rates and checkout abandonment shift across a live city grid.
-        </p>
-      </div>
+      )}
 
-      <div className="mb-6">
-        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-zinc-500">
-          Mock city scenarios
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {SURGE_SIM_PRESETS.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => applyPreset(p.id)}
-              title={p.description}
-              className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-left text-xs font-medium text-zinc-700 hover:border-amber-300 hover:bg-amber-50"
-            >
-              {p.label}
-              <span className="mt-0.5 block font-normal text-zinc-400">
-                Match {p.expectedMatchRate}
-              </span>
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={reset}
-            className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-50"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-            Reset
-          </button>
-        </div>
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+        <button
+          type="button"
+          onClick={exportReport}
+          className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+        >
+          <Download className="h-4 w-4" />
+          Export report
+        </button>
+        <button
+          type="button"
+          onClick={reset}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+        >
+          <RotateCcw className="h-3.5 w-3.5" />
+          Reset
+        </button>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-3">
         <aside className="space-y-5 lg:col-span-1">
-          <ControlPanel title="Supply / Demand" icon={<SlidersHorizontal className="h-4 w-4" />}>
+          <ControlPanel
+            title="Supply / Demand"
+            icon={<SlidersHorizontal className={`h-4 w-4 ${theme.accent}`} />}
+          >
             <SliderControl
               label="Available drivers (supply)"
               value={baseSupply}
               min={10}
               max={100}
               onChange={setBaseSupply}
-              color="emerald"
+              accentClass="accent-orange-600"
             />
             <SliderControl
               label="Customer requests (demand)"
@@ -143,17 +232,18 @@ export function SurgeSimApp() {
               min={10}
               max={100}
               onChange={setBaseDemand}
-              color="orange"
+              accentClass="accent-amber-600"
             />
-            <div className="rounded-lg bg-zinc-50 px-3 py-2 text-xs text-zinc-600">
+            <div className={`rounded-lg px-3 py-2 text-xs ring-1 ${theme.pill}`}>
               Imbalance ratio:{" "}
-              <span className="font-semibold text-zinc-900">
-                {(baseDemand / baseSupply).toFixed(2)}x
-              </span>
+              <span className="font-semibold">{(baseDemand / baseSupply).toFixed(2)}x</span>
             </div>
           </ControlPanel>
 
-          <ControlPanel title="Weather Events" icon={<CloudRain className="h-4 w-4" />}>
+          <ControlPanel
+            title="Weather Events"
+            icon={<CloudRain className={`h-4 w-4 ${theme.accent}`} />}
+          >
             <div className="grid grid-cols-2 gap-2">
               {WEATHER_EVENTS.map((w) => (
                 <button
@@ -162,8 +252,8 @@ export function SurgeSimApp() {
                   onClick={() => setWeather(w.id)}
                   className={`rounded-lg border px-2 py-2 text-left text-xs transition-colors ${
                     weather === w.id
-                      ? "border-amber-400 bg-amber-50 text-amber-900"
-                      : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300"
+                      ? theme.tabActive
+                      : "border-zinc-200 bg-white text-zinc-700 hover:border-orange-200 hover:bg-orange-50/50"
                   }`}
                 >
                   <span className="text-base">{w.emoji}</span>
@@ -174,7 +264,10 @@ export function SurgeSimApp() {
             <p className="text-xs leading-relaxed text-zinc-500">{weatherInfo.description}</p>
           </ControlPanel>
 
-          <ControlPanel title="Surge Algorithm" icon={<Gauge className="h-4 w-4" />}>
+          <ControlPanel
+            title="Surge Algorithm"
+            icon={<Gauge className={`h-4 w-4 ${theme.accent}`} />}
+          >
             <SliderControl
               label={`Min multiplier (${surgeMin.toFixed(1)}x)`}
               value={surgeMin}
@@ -182,7 +275,7 @@ export function SurgeSimApp() {
               max={2.0}
               step={0.1}
               onChange={(v) => setSurgeMin(Math.min(v, surgeMax - 0.1))}
-              color="amber"
+              accentClass="accent-amber-500"
             />
             <SliderControl
               label={`Max multiplier (${surgeMax.toFixed(1)}x)`}
@@ -191,7 +284,7 @@ export function SurgeSimApp() {
               max={5.0}
               step={0.1}
               onChange={(v) => setSurgeMax(Math.max(v, surgeMin + 0.1))}
-              color="red"
+              accentClass="accent-orange-600"
             />
             <SliderControl
               label={`Sensitivity (${(surgeSensitivity * 100).toFixed(0)}%)`}
@@ -200,7 +293,7 @@ export function SurgeSimApp() {
               max={1}
               step={0.05}
               onChange={setSurgeSensitivity}
-              color="orange"
+              accentClass="accent-orange-500"
             />
           </ControlPanel>
 
@@ -213,7 +306,7 @@ export function SurgeSimApp() {
               type="button"
               onClick={() => setLive((l) => !l)}
               className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
-                live ? "bg-amber-600 text-white" : "bg-zinc-100 text-zinc-600"
+                live ? theme.tabActive : "bg-zinc-100 text-zinc-600"
               }`}
             >
               {live ? "On" : "Off"}
@@ -231,13 +324,18 @@ export function SurgeSimApp() {
             surgeMin={surgeMin}
             surgeMax={surgeMax}
           />
-          <SurgeSimDashboard metrics={result.metrics} zones={result.zones} history={history} />
+          <SurgeSimDashboard
+            metrics={result.metrics}
+            zones={result.zones}
+            history={history}
+            slaThreshold={SLA_ABANDONMENT_THRESHOLD}
+          />
         </main>
       </div>
 
-      <div className="mt-10 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/80 p-6">
+      <div className={`mt-10 rounded-2xl border border-dashed p-6 ${theme.statHighlight}`}>
         <div className="flex items-start gap-3">
-          <Map className="mt-0.5 h-5 w-5 text-amber-600" />
+          <Map className={`mt-0.5 h-5 w-5 ${theme.accent}`} />
           <div>
             <h3 className="font-semibold text-zinc-900">PM Playbook</h3>
             <ul className="mt-2 space-y-1.5 text-sm text-zinc-600">
@@ -247,10 +345,10 @@ export function SurgeSimApp() {
               </li>
               <li>
                 <strong className="text-zinc-800">Guardrail:</strong> Checkout Abandonment — customers
-                leaving due to surge pricing or long waits.
+                leaving due to surge pricing or long waits (SLA &lt; {SLA_ABANDONMENT_THRESHOLD}%).
               </li>
               <li>
-                Try <strong className="text-zinc-800">Heavy Rain</strong> with low supply — surge rises
+                Try <strong className="text-zinc-800">Storm surge</strong> with low supply — surge rises
                 but abandonment may spike if max multiplier is too aggressive.
               </li>
               <li>
@@ -260,7 +358,7 @@ export function SurgeSimApp() {
           </div>
         </div>
       </div>
-    </div>
+    </ProjectDemoShell>
   );
 }
 
@@ -291,7 +389,7 @@ function SliderControl({
   max,
   step = 1,
   onChange,
-  color,
+  accentClass,
 }: {
   label: string;
   value: number;
@@ -299,15 +397,8 @@ function SliderControl({
   max: number;
   step?: number;
   onChange: (v: number) => void;
-  color: "emerald" | "orange" | "amber" | "red";
+  accentClass: string;
 }) {
-  const accent = {
-    emerald: "accent-emerald-600",
-    orange: "accent-orange-600",
-    amber: "accent-amber-600",
-    red: "accent-red-600",
-  }[color];
-
   return (
     <div>
       <div className="mb-1.5 flex justify-between text-xs">
@@ -321,7 +412,7 @@ function SliderControl({
         step={step}
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
-        className={`w-full ${accent}`}
+        className={`w-full ${accentClass}`}
       />
     </div>
   );

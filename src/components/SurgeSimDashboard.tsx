@@ -20,9 +20,11 @@ interface Props {
   metrics: MarketMetrics;
   zones: ZoneState[];
   history: TimeSeriesPoint[];
+  slaThreshold?: number;
 }
 
-export function SurgeSimDashboard({ metrics, zones, history }: Props) {
+export function SurgeSimDashboard({ metrics, zones, history, slaThreshold = 15 }: Props) {
+  const slaBreached = metrics.checkoutAbandonmentRate > slaThreshold;
   const topSurgeZones = [...zones]
     .sort((a, b) => b.surgeMultiplier - a.surgeMultiplier)
     .slice(0, 5)
@@ -42,20 +44,21 @@ export function SurgeSimDashboard({ metrics, zones, history }: Props) {
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <MetricCard
-          icon={<Target className="h-5 w-5 text-amber-600" />}
+          icon={<Target className="h-5 w-5 text-orange-600" />}
           label="Order Match Rate"
           value={`${metrics.orderMatchRate.toFixed(1)}%`}
           sub="North Star"
-          accent="amber"
+          accent="orange"
           highlight
         />
         <MetricCard
-          icon={<ShieldAlert className="h-5 w-5 text-red-600" />}
+          icon={<ShieldAlert className={`h-5 w-5 ${slaBreached ? "text-red-600" : "text-orange-600"}`} />}
           label="Checkout Abandonment"
           value={`${metrics.checkoutAbandonmentRate.toFixed(1)}%`}
-          sub="Guardrail"
-          accent="red"
+          sub={`Guardrail < ${slaThreshold}%`}
+          accent={slaBreached ? "red" : "orange"}
           highlight
+          warn={slaBreached}
         />
         <MetricCard
           icon={<TrendingUp className="h-5 w-5 text-orange-600" />}
@@ -65,18 +68,18 @@ export function SurgeSimDashboard({ metrics, zones, history }: Props) {
           accent="orange"
         />
         <MetricCard
-          icon={<Users className="h-5 w-5 text-emerald-600" />}
+          icon={<Users className="h-5 w-5 text-amber-600" />}
           label="Driver Accept Rate"
           value={`${(metrics.avgDriverAcceptRate * 100).toFixed(0)}%`}
           sub="Supply responsiveness"
-          accent="emerald"
+          accent="amber"
         />
         <MetricCard
-          icon={<ShoppingCart className="h-5 w-5 text-indigo-600" />}
+          icon={<ShoppingCart className="h-5 w-5 text-orange-700" />}
           label="Checkout Conversion"
           value={`${(metrics.avgCheckoutConversion * 100).toFixed(0)}%`}
           sub="Demand retention"
-          accent="indigo"
+          accent="orange"
         />
         <MetricCard
           icon={<Clock className="h-5 w-5 text-zinc-600" />}
@@ -108,7 +111,7 @@ export function SurgeSimDashboard({ metrics, zones, history }: Props) {
                   type="monotone"
                   dataKey="matchRate"
                   name="Match rate"
-                  stroke="#d97706"
+                  stroke="#ea580c"
                   strokeWidth={2}
                   dot={false}
                 />
@@ -138,7 +141,7 @@ export function SurgeSimDashboard({ metrics, zones, history }: Props) {
                 <Tooltip />
                 <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                   {funnelData.map((_, i) => (
-                    <Cell key={i} fill={["#f59e0b", "#6366f1", "#10b981"][i]} />
+                    <Cell key={i} fill={["#f97316", "#fb923c", "#ea580c"][i]} />
                   ))}
                 </Bar>
               </BarChart>
@@ -172,6 +175,7 @@ function MetricCard({
   sub,
   accent,
   highlight,
+  warn,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -179,11 +183,14 @@ function MetricCard({
   sub: string;
   accent: string;
   highlight?: boolean;
+  warn?: boolean;
 }) {
   const border = highlight
-    ? accent === "amber"
-      ? "border-amber-200 bg-amber-50/50"
-      : "border-red-200 bg-red-50/50"
+    ? warn
+      ? "border-red-200 bg-red-50/50"
+      : accent === "orange" || accent === "amber"
+        ? "border-orange-200 bg-orange-50/50"
+        : "border-red-200 bg-red-50/50"
     : "border-zinc-200 bg-white";
 
   return (

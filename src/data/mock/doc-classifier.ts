@@ -146,6 +146,125 @@ export const MOCK_BATCH_DOCUMENTS: MockDocument[] = [
   },
 ];
 
+export type DocClassifierScenarioId = "kyc-retail" | "sme-lending" | "hiring" | "compliance";
+
+export interface DocClassifierScenario {
+  id: DocClassifierScenarioId;
+  label: string;
+  description: string;
+  documentIds: string[];
+  fileName: string;
+}
+
+/** Scenario subsets — each maps to a vertical onboarding batch. */
+export const DOC_CLASSIFIER_SCENARIOS: DocClassifierScenario[] = [
+  {
+    id: "kyc-retail",
+    label: "Retail KYC",
+    description: "ID + bank statement mix",
+    documentIds: ["aadhaar", "bank", "pan", "passport", "voter", "sbi", "kotak", "icici"],
+    fileName: "retail-kyc-batch.csv",
+  },
+  {
+    id: "sme-lending",
+    label: "SME lending",
+    description: "Invoices + ITR heavy",
+    documentIds: ["invoice", "proforma", "itr", "itr2", "form26", "gst", "retail"],
+    fileName: "sme-lending-batch.csv",
+  },
+  {
+    id: "hiring",
+    label: "HR onboarding",
+    description: "CV + ID verification",
+    documentIds: ["resume", "cv2", "employment", "aadhaar", "pan", "passport"],
+    fileName: "hr-onboarding-batch.csv",
+  },
+  {
+    id: "compliance",
+    label: "Compliance audit",
+    description: "Mixed doc types, SLA strict",
+    documentIds: [
+      "invoice",
+      "bank",
+      "aadhaar",
+      "itr",
+      "resume",
+      "unknown",
+      "proforma",
+      "form26",
+      "passport",
+      "gst",
+    ],
+    fileName: "compliance-audit-batch.csv",
+  },
+];
+
+export interface RoutingSlaMeta {
+  priority: "P0" | "P1" | "P2";
+  slaHours: number;
+  badgeClass: string;
+}
+
+/** SLA tiers keyed by routing destination substring match. */
+export const ROUTING_SLA_META: Record<string, RoutingSlaMeta> = {
+  "KYC verification": {
+    priority: "P0",
+    slaHours: 4,
+    badgeClass: "bg-red-100 text-red-800",
+  },
+  "Income & liability": {
+    priority: "P0",
+    slaHours: 8,
+    badgeClass: "bg-orange-100 text-orange-800",
+  },
+  "Financial & tax": {
+    priority: "P1",
+    slaHours: 24,
+    badgeClass: "bg-amber-100 text-amber-800",
+  },
+  "Billing & compliance": {
+    priority: "P1",
+    slaHours: 24,
+    badgeClass: "bg-amber-100 text-amber-800",
+  },
+  "HR": {
+    priority: "P2",
+    slaHours: 48,
+    badgeClass: "bg-sky-100 text-sky-800",
+  },
+  "Manual review": {
+    priority: "P0",
+    slaHours: 2,
+    badgeClass: "bg-red-100 text-red-800",
+  },
+};
+
+export function getRoutingSla(routing: string): RoutingSlaMeta {
+  const key = Object.keys(ROUTING_SLA_META).find((k) => routing.includes(k));
+  return (
+    ROUTING_SLA_META[key ?? ""] ?? {
+      priority: "P2",
+      slaHours: 48,
+      badgeClass: "bg-zinc-100 text-zinc-700",
+    }
+  );
+}
+
+export function getDocClassifierScenario(id: DocClassifierScenarioId): DocClassifierScenario {
+  return DOC_CLASSIFIER_SCENARIOS.find((s) => s.id === id) ?? DOC_CLASSIFIER_SCENARIOS[0];
+}
+
+export function scenarioDocumentsToCsvRows(id: DocClassifierScenarioId): Record<string, string>[] {
+  const scenario = getDocClassifierScenario(id);
+  const docs = scenario.documentIds
+    .map((docId) => MOCK_BATCH_DOCUMENTS.find((d) => d.id === docId))
+    .filter((d): d is MockDocument => Boolean(d));
+  return docs.map((d) => ({
+    document_name: d.name,
+    text: d.text,
+  }));
+}
+
 export function mockDocumentsToCsvRows(): Record<string, string>[] {
   return MOCK_BATCH_DOCUMENTS.map((d) => ({
     document_name: d.name,

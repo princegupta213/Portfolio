@@ -10,6 +10,49 @@ export interface SurgeSimPreset {
   expectedMatchRate: string;
 }
 
+/** Checkout abandonment guardrail for SLA breach callouts */
+export const SLA_ABANDONMENT_THRESHOLD = 15;
+
+/** Enterprise scenarios wired to ProjectDemoShell / ENTERPRISE_SCENARIOS */
+export const ENTERPRISE_SURGE_PRESETS: SurgeSimPreset[] = [
+  {
+    id: "rush-hour",
+    label: "Friday rush hour",
+    description: "High demand, moderate supply — office districts overheated.",
+    baseSupply: 48,
+    baseDemand: 72,
+    weather: "clear",
+    expectedMatchRate: "~75%",
+  },
+  {
+    id: "storm",
+    label: "Storm surge",
+    description: "Weather shock + demand spike — supply drops from driver churn.",
+    baseSupply: 40,
+    baseDemand: 65,
+    weather: "heavy_rain",
+    expectedMatchRate: "~68%",
+  },
+  {
+    id: "stadium",
+    label: "Stadium event",
+    description: "Localized hotspot, supply drain — concert let-out pattern.",
+    baseSupply: 45,
+    baseDemand: 80,
+    weather: "clear",
+    expectedMatchRate: "~60%",
+  },
+  {
+    id: "airport",
+    label: "Airport pickup",
+    description: "Sustained imbalance, cap test — long waits at terminals.",
+    baseSupply: 35,
+    baseDemand: 70,
+    weather: "clear",
+    expectedMatchRate: "~62%",
+  },
+];
+
 export const SURGE_SIM_PRESETS: SurgeSimPreset[] = [
   {
     id: "balanced",
