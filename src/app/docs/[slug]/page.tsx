@@ -6,6 +6,9 @@ import { ArrowLeft, FileText } from "lucide-react";
 
 const DOC_TITLES: Record<string, string> = {
   "voice-flow-PRD": "VoiceFlow PRD",
+  "data-synth-PRD": "DataSynth PRD",
+  "export-hub-PRD": "ExportHub PRD",
+  "checkout-friction-PRD": "CheckoutFriction PRD",
   "prompt-route-PRD": "PromptRoute PRD",
   "claim-resolve-PRD": "ClaimResolve PRD",
   "doc-classifier-PRD": "Document Classifier PRD",
