@@ -179,6 +179,9 @@ export function analyzeFeedback(items: FeedbackItem[]): AnalysisResult {
     const impact = template?.baseImpact ?? 5;
     const effort = template?.baseEffort ?? 5;
     const iceScore = Math.round(((impact * confidence) / effort) * 10) / 10;
+    const reach = theme.count * 120;
+    const confidencePct = confidence * 10;
+    const riceScore = Math.round(((reach * impact * (confidence / 10)) / effort) * 10) / 10;
 
     return {
       id: `opp-${theme.id}`,
@@ -191,6 +194,9 @@ export function analyzeFeedback(items: FeedbackItem[]): AnalysisResult {
       confidence,
       effort,
       iceScore,
+      reach,
+      confidencePct,
+      riceScore,
       priority: computePriority(iceScore),
       sampleFeedback: theme.sampleQuotes,
     };

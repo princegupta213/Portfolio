@@ -7,6 +7,7 @@ import {
   getPoliciesForScenario,
   getPromptsForScenario,
 } from "@/lib/prompt-route/scenarios";
+import { runSimulation } from "@/lib/prompt-route/simulator";
 
 describe("PromptRoute classifier", () => {
   it("classifies simple conversational prompts (happy path)", () => {
@@ -121,5 +122,49 @@ describe("PromptRoute scenarios", () => {
     expect(idePrompts.length).toBeGreaterThan(0);
     expect(getDailyBudgetCap("support")).toBe(250);
     expect(getDailyBudgetCap("premium")).toBe(2000);
+  });
+});
+
+describe("PromptRoute semantic cache", () => {
+  it("returns cache_hit for duplicate prompts when cache is enabled", () => {
+    const prompt = "What is the capital of France?";
+    const result = runSimulation({
+      prompts: [prompt, prompt],
+      policies: DEFAULT_POLICIES,
+      semanticCacheEnabled: true,
+    });
+
+    expect(result.requests[0].route.outcome).not.toBe("cache_hit");
+    expect(result.requests[1].route.outcome).toBe("cache_hit");
+    expect(result.requests[1].route.cacheHit).toBe(true);
+    expect(result.requests[1].route.totalLatencyMs).toBe(8);
+    expect(result.requests[1].route.routerLatencyMs).toBe(8);
+    expect(result.requests[1].route.costUsd).toBe(0);
+    expect(result.requests[1].route.routedModel.name).toBe("Semantic Cache");
+  });
+
+  it("computes cache hit rate and cost saved metrics", () => {
+    const prompt = "Summarize this report in bullet points.";
+    const result = runSimulation({
+      prompts: [prompt, prompt, "Unique prompt for routing test"],
+      policies: DEFAULT_POLICIES,
+      semanticCacheEnabled: true,
+    });
+
+    expect(result.metrics.cacheHits).toBe(1);
+    expect(result.metrics.cacheHitRate).toBeCloseTo(33.3, 0);
+    expect(result.metrics.cachedCostSavedUsd).toBeGreaterThan(0);
+  });
+
+  it("does not cache when semantic cache is disabled", () => {
+    const prompt = "Hello there!";
+    const result = runSimulation({
+      prompts: [prompt, prompt],
+      policies: DEFAULT_POLICIES,
+      semanticCacheEnabled: false,
+    });
+
+    expect(result.requests.every((r) => r.route.outcome !== "cache_hit")).toBe(true);
+    expect(result.metrics.cacheHits).toBe(0);
   });
 });

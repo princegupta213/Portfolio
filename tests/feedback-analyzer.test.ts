@@ -64,6 +64,19 @@ describe("Feedback Analyzer engine", () => {
     expect(top.evidenceCount).toBeGreaterThan(0);
   });
 
+  it("computes RICE scores for each opportunity", () => {
+    const result = analyzeFeedback(sampleItems);
+    const opp = result.opportunities.find((o) => o.evidenceCount > 0);
+    expect(opp).toBeDefined();
+    expect(opp!.reach).toBe(opp!.evidenceCount * 120);
+    expect(opp!.confidencePct).toBe(opp!.confidence * 10);
+    const expectedRice =
+      Math.round(
+        ((opp!.reach! * opp!.impact * (opp!.confidence / 10)) / opp!.effort) * 10
+      ) / 10;
+    expect(opp!.riceScore).toBe(expectedRice);
+  });
+
   it("computes overall sentiment breakdown", () => {
     const result = analyzeFeedback(sampleItems);
     const total =

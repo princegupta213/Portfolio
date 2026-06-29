@@ -34,6 +34,9 @@ export interface ProductOpportunity {
   confidence: number;
   effort: number;
   iceScore: number;
+  riceScore?: number;
+  reach?: number;
+  confidencePct?: number;
   priority: "P0" | "P1" | "P2" | "P3";
   sampleFeedback: string[];
 }

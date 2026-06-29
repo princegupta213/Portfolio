@@ -88,6 +88,7 @@ export function PromptRouteApp() {
   const [loadingStep, setLoadingStep] = useState(0);
   const [customPrompt, setCustomPrompt] = useState("");
   const [classifierPreview, setClassifierPreview] = useState("");
+  const [semanticCacheEnabled, setSemanticCacheEnabled] = useState(false);
 
   const budgetCap = getDailyBudgetCap(scenario);
   const budgetUsedPct = Math.min(100, (dailySpendUsd / budgetCap) * 100);
@@ -140,18 +141,18 @@ export function PromptRouteApp() {
 
   const runBatch = useCallback(() => {
     runWithLoading(
-      () => runSimulation({ prompts: scenarioPrompts, policies, seeded: true }),
+      () => runSimulation({ prompts: scenarioPrompts, policies, seeded: true, semanticCacheEnabled }),
       "Batch simulation"
     );
-  }, [policies, runWithLoading, scenarioPrompts]);
+  }, [policies, runWithLoading, scenarioPrompts, semanticCacheEnabled]);
 
   const runCustom = useCallback(() => {
     if (!customPrompt.trim()) return;
     runWithLoading(
-      () => simulateSinglePrompt(customPrompt.trim(), policies),
+      () => runSimulation({ prompts: [customPrompt.trim()], policies, seeded: true, semanticCacheEnabled }),
       "Single prompt route"
     );
-  }, [customPrompt, policies, runWithLoading]);
+  }, [customPrompt, policies, runWithLoading, semanticCacheEnabled]);
 
   const runFailoverDemo = useCallback(() => {
     runWithLoading(
@@ -291,6 +292,26 @@ export function PromptRouteApp() {
                 scenario — chat, code, summarization, extraction, and reasoning workloads with
                 deterministic routing and simulated 429 failover.
               </p>
+              <div className="mb-4 flex items-center justify-between rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3">
+                <div>
+                  <p className="text-sm font-medium text-zinc-900">Semantic cache</p>
+                  <p className="text-xs text-zinc-500">
+                    Exact-duplicate prompts return cached responses (~8 ms, $0)
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSemanticCacheEnabled(!semanticCacheEnabled)}
+                  className="focus:outline-none"
+                  aria-label="Toggle Semantic Cache"
+                >
+                  {semanticCacheEnabled ? (
+                    <ToggleRight className="h-9 w-9 text-indigo-600" />
+                  ) : (
+                    <ToggleLeft className="h-9 w-9 text-zinc-300" />
+                  )}
+                </button>
+              </div>
               <AdminActionButton
                 onClick={runBatch}
                 disabled={loading}

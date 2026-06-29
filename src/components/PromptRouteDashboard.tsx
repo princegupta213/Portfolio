@@ -28,6 +28,7 @@ import {
   Shield,
   BookOpen,
   TrendingDown,
+  Database,
 } from "lucide-react";
 import type { SimulationResult } from "@/lib/prompt-route/types";
 import { PromptRouteFlowDiagram } from "@/components/PromptRouteFlowDiagram";
@@ -36,6 +37,7 @@ const OUTCOME_COLORS: Record<string, string> = {
   primary: "#10b981",
   fallback: "#f59e0b",
   circuit_open: "#ef4444",
+  cache_hit: "#0ea5e9",
 };
 
 const MODEL_COLORS = ["#6366f1", "#0ea5e9", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6"];
@@ -77,6 +79,12 @@ export function PromptRouteDashboard({ result, onReset }: Props) {
       `| Router overhead | ${metrics.avgRouterOverheadMs.toFixed(1)} ms |`,
       `| Failover recovery | ${metrics.failoverRecoveryRate.toFixed(0)}% |`,
       `| Tokens/sec | ${metrics.avgTokensPerSecond.toFixed(1)} |`,
+      ...(metrics.cacheHitRate !== undefined
+        ? [
+            `| Cache hit rate | ${metrics.cacheHitRate.toFixed(1)}% |`,
+            `| Cached cost saved | $${(metrics.cachedCostSavedUsd ?? 0).toFixed(5)} |`,
+          ]
+        : []),
       "",
       "## Routes",
       "",
@@ -149,7 +157,11 @@ export function PromptRouteDashboard({ result, onReset }: Props) {
       )}
 
       {/* KPI cards */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div
+        className={`mb-8 grid gap-4 sm:grid-cols-2 ${
+          metrics.cacheHitRate !== undefined ? "lg:grid-cols-5" : "lg:grid-cols-4"
+        }`}
+      >
         <MetricCard
           icon={<DollarSign className="h-5 w-5 text-emerald-600" />}
           label="Cost Savings"
@@ -178,6 +190,15 @@ export function PromptRouteDashboard({ result, onReset }: Props) {
           sub={`${metrics.primaryRoutePct.toFixed(0)}% primary · ${metrics.fallbackRoutePct.toFixed(0)}% fallback`}
           accent="violet"
         />
+        {metrics.cacheHitRate !== undefined && (
+          <MetricCard
+            icon={<Database className="h-5 w-5 text-sky-600" />}
+            label="Cache Hit Rate"
+            value={`${metrics.cacheHitRate.toFixed(1)}%`}
+            sub={`${metrics.cacheHits ?? 0} hits · $${(metrics.cachedCostSavedUsd ?? 0).toFixed(4)} saved`}
+            accent="sky"
+          />
+        )}
       </div>
 
       <div className="mb-8 grid gap-6 lg:grid-cols-2">
@@ -311,9 +332,13 @@ export function PromptRouteDashboard({ result, onReset }: Props) {
                       </td>
                       <td className="px-4 py-3 font-mono text-xs text-zinc-600">
                         ${req.route.costUsd.toFixed(5)}
-                        <span className="ml-1 text-zinc-400">
-                          (-{(((req.route.baselineCostUsd - req.route.costUsd) / req.route.baselineCostUsd) * 100).toFixed(0)}%)
-                        </span>
+                        {req.route.cacheHit ? (
+                          <span className="ml-1 text-sky-600">(cached)</span>
+                        ) : req.route.baselineCostUsd > 0 ? (
+                          <span className="ml-1 text-zinc-400">
+                            (-{(((req.route.baselineCostUsd - req.route.costUsd) / req.route.baselineCostUsd) * 100).toFixed(0)}%)
+                          </span>
+                        ) : null}
                       </td>
                       <td className="px-4 py-3 text-zinc-600">{req.route.totalLatencyMs} ms</td>
                     </tr>
@@ -351,13 +376,14 @@ function MetricCard({
   label: string;
   value: string;
   sub: string;
-  accent: "emerald" | "indigo" | "amber" | "violet";
+  accent: "emerald" | "indigo" | "amber" | "violet" | "sky";
 }) {
   const borders = {
     emerald: "border-emerald-100",
     indigo: "border-indigo-100",
     amber: "border-amber-100",
     violet: "border-violet-100",
+    sky: "border-sky-100",
   };
   return (
     <div className={`rounded-xl border ${borders[accent]} bg-white p-5`}>

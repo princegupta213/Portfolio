@@ -58,12 +58,20 @@ export function AnalysisDashboard({
   onExportAudit,
 }: Props) {
   const [stakeholderView, setStakeholderView] = useState<StakeholderView>("pm");
+  const [scoringFramework, setScoringFramework] = useState<"ice" | "rice">("ice");
   const { overallSentiment, themes, opportunities, topPainPoints, summary } = result;
 
   const themeIdsForView = STAKEHOLDER_THEME_FILTER[stakeholderView];
   const filteredOpportunities = opportunities.filter((o) => {
     const themeId = o.id.replace("opp-", "");
     return themeIdsForView.includes(themeId);
+  });
+
+  const sortedRoadmapOpportunities = [...(filteredOpportunities.length > 0 ? filteredOpportunities : opportunities)].sort((a, b) => {
+    if (scoringFramework === "rice") {
+      return (b.riceScore ?? 0) - (a.riceScore ?? 0);
+    }
+    return b.iceScore - a.iceScore;
   });
 
   const sentimentData = [
@@ -78,8 +86,24 @@ export function AnalysisDashboard({
     fullName: t.name,
   }));
 
+  const getPriority = (opp: typeof opportunities[0]) => {
+    if (scoringFramework === "ice") return opp.priority;
+    const score = opp.riceScore ?? 0;
+    if (score >= 1000) return "P0";
+    if (score >= 500) return "P1";
+    if (score >= 200) return "P2";
+    return "P3";
+  };
+
   const exportReport = () => {
-    const exportOpps = filteredOpportunities.length > 0 ? filteredOpportunities : opportunities;
+    const rawOpps = filteredOpportunities.length > 0 ? filteredOpportunities : opportunities;
+    const exportOpps = [...rawOpps].sort((a, b) => {
+      if (scoringFramework === "rice") {
+        return (b.riceScore ?? 0) - (a.riceScore ?? 0);
+      }
+      return b.iceScore - a.iceScore;
+    });
+
     const lines = [
       "# Product Feedback Analysis Report",
       "",
@@ -88,6 +112,7 @@ export function AnalysisDashboard({
       `**Source:** ${fileName ?? "Unknown"}`,
       `**Scenario:** ${scenarioId ?? "custom"}`,
       `**Stakeholder view:** ${stakeholderView === "pm" ? "Product Management" : "Engineering"}`,
+      `**Prioritization framework:** ${scoringFramework.toUpperCase()}`,
       "",
       "## Executive Summary",
       summary,
@@ -95,14 +120,20 @@ export function AnalysisDashboard({
       "## Top Pain Points",
       ...topPainPoints.map((p, i) => `${i + 1}. ${p}`),
       "",
-      "## Prioritized Roadmap (ICE)",
+      `## Prioritized Roadmap (${scoringFramework.toUpperCase()})`,
       "",
-      "| Priority | Initiative | Theme | ICE | Impact | Confidence | Effort | Evidence |",
-      "|----------|------------|-------|-----|--------|------------|--------|----------|",
-      ...exportOpps.map(
-        (o) =>
-          `| ${o.priority} | ${o.title} | ${o.theme} | ${o.iceScore} | ${o.impact} | ${o.confidence} | ${o.effort} | ${o.evidenceCount} |`
-      ),
+      scoringFramework === "ice"
+        ? "| Priority | Initiative | Theme | ICE | Impact | Confidence | Effort | Evidence |"
+        : "| Priority | Initiative | Theme | RICE | Reach | Impact | Confidence (%) | Effort | Evidence |",
+      scoringFramework === "ice"
+        ? "|----------|------------|-------|-----|--------|------------|--------|----------|"
+        : "|----------|------------|-------|------|-------|--------|----------------|--------|----------|",
+      ...exportOpps.map((o) => {
+        const priority = getPriority(o);
+        return scoringFramework === "ice"
+          ? `| ${priority} | ${o.title} | ${o.theme} | ${o.iceScore} | ${o.impact} | ${o.confidence} | ${o.effort} | ${o.evidenceCount} |`
+          : `| ${priority} | ${o.title} | ${o.theme} | ${o.riceScore ?? 0} | ${o.reach ?? 0} | ${o.impact} | ${o.confidencePct ?? 0}% | ${o.effort} | ${o.evidenceCount} |`;
+      }),
       "",
       "## Theme Breakdown",
       "",
@@ -238,22 +269,53 @@ export function AnalysisDashboard({
           <div>
             <h2 className="text-xl font-bold text-zinc-900">Prioritized roadmap</h2>
             <p className="mt-1 text-sm text-zinc-500">
-              Ranked by ICE score (Impact × Confidence ÷ Effort)
+              {scoringFramework === "ice"
+                ? "Ranked by ICE score (Impact × Confidence ÷ Effort)"
+                : "Ranked by RICE score (Reach × Impact × Confidence % ÷ Effort)"}
             </p>
           </div>
-          <div className="flex gap-1 rounded-lg border border-zinc-200 bg-zinc-100 p-1">
-            <StakeholderToggle
-              active={stakeholderView === "pm"}
-              onClick={() => setStakeholderView("pm")}
-              icon={<Users className="h-3.5 w-3.5" />}
-              label="PM view"
-            />
-            <StakeholderToggle
-              active={stakeholderView === "engineering"}
-              onClick={() => setStakeholderView("engineering")}
-              icon={<Wrench className="h-3.5 w-3.5" />}
-              label="Engineering"
-            />
+          <div className="flex flex-wrap gap-3">
+            {/* Framework Switcher */}
+            <div className="flex gap-1 rounded-lg border border-zinc-200 bg-zinc-100 p-1">
+              <button
+                type="button"
+                onClick={() => setScoringFramework("ice")}
+                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-semibold transition-colors ${
+                  scoringFramework === "ice"
+                    ? "bg-white text-zinc-900 shadow-sm"
+                    : "text-zinc-600 hover:text-zinc-900"
+                }`}
+              >
+                ICE
+              </button>
+              <button
+                type="button"
+                onClick={() => setScoringFramework("rice")}
+                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-semibold transition-colors ${
+                  scoringFramework === "rice"
+                    ? "bg-white text-zinc-900 shadow-sm"
+                    : "text-zinc-600 hover:text-zinc-900"
+                }`}
+              >
+                RICE
+              </button>
+            </div>
+
+            {/* Stakeholder View Switcher */}
+            <div className="flex gap-1 rounded-lg border border-zinc-200 bg-zinc-100 p-1">
+              <StakeholderToggle
+                active={stakeholderView === "pm"}
+                onClick={() => setStakeholderView("pm")}
+                icon={<Users className="h-3.5 w-3.5" />}
+                label="PM view"
+              />
+              <StakeholderToggle
+                active={stakeholderView === "engineering"}
+                onClick={() => setStakeholderView("engineering")}
+                icon={<Wrench className="h-3.5 w-3.5" />}
+                label="Engineering"
+              />
+            </div>
           </div>
         </div>
         <p className="mt-2 text-xs text-zinc-500">
@@ -268,35 +330,49 @@ export function AnalysisDashboard({
                 <th className="px-4 py-3 font-semibold text-zinc-700">Priority</th>
                 <th className="px-4 py-3 font-semibold text-zinc-700">Initiative</th>
                 <th className="px-4 py-3 font-semibold text-zinc-700">Theme</th>
-                <th className="px-4 py-3 font-semibold text-zinc-700">ICE</th>
-                <th className="px-4 py-3 font-semibold text-zinc-700">I / C / E</th>
+                <th className="px-4 py-3 font-semibold text-zinc-700">
+                  {scoringFramework === "ice" ? "ICE" : "RICE"}
+                </th>
+                <th className="px-4 py-3 font-semibold text-zinc-700">
+                  {scoringFramework === "ice" ? "I / C / E" : "R / I / C / E"}
+                </th>
                 <th className="px-4 py-3 font-semibold text-zinc-700">Evidence</th>
               </tr>
             </thead>
             <tbody>
-              {(filteredOpportunities.length > 0 ? filteredOpportunities : opportunities).map(
-                (opp) => (
-                  <tr key={opp.id} className="border-b border-zinc-50 hover:bg-zinc-50/50">
-                    <td className="px-4 py-3">
-                      <span
-                        className="inline-block rounded px-2 py-0.5 text-xs font-bold text-white"
-                        style={{ backgroundColor: PRIORITY_COLORS[opp.priority] }}
-                      >
-                        {opp.priority}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-zinc-900">{opp.title}</div>
-                      <div className="mt-0.5 text-xs text-zinc-500">{opp.problemStatement}</div>
-                    </td>
-                    <td className="px-4 py-3 text-zinc-600">{opp.theme}</td>
-                    <td className={`px-4 py-3 font-semibold ${THEME.accent}`}>{opp.iceScore}</td>
-                    <td className="px-4 py-3 text-zinc-500">
-                      {opp.impact} / {opp.confidence} / {opp.effort}
-                    </td>
-                    <td className="px-4 py-3 text-zinc-600">{opp.evidenceCount}</td>
-                  </tr>
-                )
+              {sortedRoadmapOpportunities.map(
+                (opp) => {
+                  const priority = getPriority(opp);
+                  const displayScore = scoringFramework === "ice" ? opp.iceScore : opp.riceScore;
+                  return (
+                    <tr key={opp.id} className="border-b border-zinc-50 hover:bg-zinc-50/50">
+                      <td className="px-4 py-3">
+                        <span
+                          className="inline-block rounded px-2 py-0.5 text-xs font-bold text-white"
+                          style={{ backgroundColor: PRIORITY_COLORS[priority] }}
+                        >
+                          {priority}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-zinc-900">{opp.title}</div>
+                        <div className="mt-0.5 text-xs text-zinc-500">{opp.problemStatement}</div>
+                      </td>
+                      <td className="px-4 py-3 text-zinc-600">{opp.theme}</td>
+                      <td className={`px-4 py-3 font-semibold ${THEME.accent}`}>
+                        {displayScore}
+                      </td>
+                      <td className="px-4 py-3 text-zinc-500">
+                        {scoringFramework === "ice" ? (
+                          `${opp.impact} / ${opp.confidence} / ${opp.effort}`
+                        ) : (
+                          `${opp.reach} / ${opp.impact} / ${opp.confidencePct}% / ${opp.effort}`
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-zinc-600">{opp.evidenceCount}</td>
+                    </tr>
+                  );
+                }
               )}
             </tbody>
           </table>

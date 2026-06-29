@@ -20,18 +20,20 @@ interface SimulateOptions {
   policies?: RoutingPolicy[];
   seeded?: boolean;
   forceRateLimitDemo?: boolean;
+  semanticCacheEnabled?: boolean;
 }
 
 export function runSimulation(options: SimulateOptions): SimulationResult {
   const policies = options.policies ?? DEFAULT_POLICIES;
   const seeded = options.seeded ?? false;
+  const seenPrompts = new Set<string>();
 
   const requests = options.prompts.map((prompt, i) => {
     const classification = classifyPrompt(prompt);
     const seed = seeded ? hashString(`${prompt}:${i}`) : undefined;
     const forceRateLimit = seeded && SAMPLE_RATE_LIMIT_INDICES.has(i);
 
-    const route = routeRequest(classification, {
+    const rawRoute = routeRequest(classification, {
       policies,
       simulateRateLimit: true,
       circuitBreakerOpen: options.forceRateLimitDemo && i === 2,
@@ -39,6 +41,32 @@ export function runSimulation(options: SimulateOptions): SimulationResult {
       forceFailoverSuccess: forceRateLimit ? true : undefined,
       seed,
     });
+
+    const isCacheHit = !!options.semanticCacheEnabled && seenPrompts.has(prompt);
+    seenPrompts.add(prompt);
+
+    const route = isCacheHit
+      ? {
+          ...rawRoute,
+          outcome: "cache_hit" as const,
+          routedModel: {
+            id: "cache",
+            name: "Semantic Cache",
+            provider: "Local",
+            inputCostPer1M: 0,
+            outputCostPer1M: 0,
+            avgLatencyMs: 8,
+            contextWindow: 0,
+            rateLimitRpm: 0,
+            strengths: [],
+          },
+          routerLatencyMs: 8,
+          totalLatencyMs: 8,
+          costUsd: 0,
+          cacheHit: true,
+        }
+      : rawRoute;
+
     return {
       id: `req-${i + 1}`,
       prompt,
@@ -60,9 +88,9 @@ export function runSimulation(options: SimulateOptions): SimulationResult {
   const avgBaselineLatency = 1350;
   const avgLatencyDeltaMs = avgTotalLatency - avgBaselineLatency;
 
-  const failoverAttempts = requests.filter((r) => r.route.rateLimitHit).length;
+  const failoverAttempts = requests.filter((r) => r.route.rateLimitHit && !r.route.cacheHit).length;
   const failoverSuccesses = requests.filter(
-    (r) => r.route.outcome === "fallback" || r.route.outcome === "circuit_open"
+    (r) => (r.route.outcome === "fallback" || r.route.outcome === "circuit_open") && !r.route.cacheHit
   ).length;
   const failoverRecoveryRate =
     failoverAttempts > 0 ? (failoverSuccesses / failoverAttempts) * 100 : 100;
@@ -76,6 +104,15 @@ export function runSimulation(options: SimulateOptions): SimulationResult {
     totalInferenceMs > 0 ? totalOutputTokens / (totalInferenceMs / 1000) : 0;
 
   const primaryCount = requests.filter((r) => r.route.outcome === "primary").length;
+  const fallbackCount = requests.filter(
+    (r) => r.route.outcome === "fallback" || r.route.outcome === "circuit_open"
+  ).length;
+  const cacheHits = requests.filter((r) => r.route.cacheHit).length;
+  const cacheHitRate = requests.length > 0 ? (cacheHits / requests.length) * 100 : 0;
+  const cachedCostSavedUsd = requests.reduce(
+    (s, r) => s + (r.route.cacheHit ? r.route.baselineCostUsd : 0),
+    0
+  );
 
   const modelMap = new Map<
     string,
@@ -117,7 +154,10 @@ export function runSimulation(options: SimulateOptions): SimulationResult {
       failoverSuccesses,
       avgTokensPerSecond,
       primaryRoutePct: (primaryCount / requests.length) * 100,
-      fallbackRoutePct: ((requests.length - primaryCount) / requests.length) * 100,
+      fallbackRoutePct: (fallbackCount / requests.length) * 100,
+      cacheHits,
+      cacheHitRate,
+      cachedCostSavedUsd,
     },
     modelUsage: Array.from(modelMap.values()).sort((a, b) => b.count - a.count),
     taskBreakdown: Array.from(taskMap.entries()).map(([taskType, count]) => ({

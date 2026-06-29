@@ -38,7 +38,7 @@ export interface ClassificationResult {
   signals: string[];
 }
 
-export type RouteOutcome = "primary" | "fallback" | "circuit_open";
+export type RouteOutcome = "primary" | "fallback" | "circuit_open" | "cache_hit";
 
 export interface RouteDecision {
   policy: RoutingPolicy;
@@ -54,6 +54,7 @@ export interface RouteDecision {
   baselineCostUsd: number;
   failoverReason?: "rate_limit" | "timeout" | "circuit_breaker";
   rateLimitHit: boolean;
+  cacheHit?: boolean;
 }
 
 export interface SimulatedRequest {
@@ -79,6 +80,9 @@ export interface SimulationResult {
     avgTokensPerSecond: number;
     primaryRoutePct: number;
     fallbackRoutePct: number;
+    cacheHits?: number;
+    cacheHitRate?: number;
+    cachedCostSavedUsd?: number;
   };
   modelUsage: { modelId: string; name: string; count: number; costUsd: number }[];
   taskBreakdown: { taskType: TaskComplexity; label: string; count: number }[];
