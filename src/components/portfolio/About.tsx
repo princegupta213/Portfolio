@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { about } from "@/data/profile";
 import { FadeIn, HoverLift, Stagger, StaggerItem } from "@/components/motion/FadeIn";
 
@@ -23,6 +24,14 @@ export function About() {
                 <p className="leading-relaxed text-zinc-600">{p}</p>
               </StaggerItem>
             ))}
+            <StaggerItem>
+              <Link
+                href="/docs/pm-thought-process"
+                className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800"
+              >
+                PM thought process — how I built each project →
+              </Link>
+            </StaggerItem>
           </Stagger>
 
           <Stagger className="space-y-4 lg:col-span-2">
