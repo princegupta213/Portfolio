@@ -94,11 +94,11 @@ describe("Doc Classifier text extraction", () => {
 describe("Doc Classifier PDF extraction", () => {
   beforeEach(() => {
     vi.resetModules();
+    vi.stubGlobal("window", {} as Window & typeof globalThis);
   });
 
   it("returns error for scanned PDFs with no selectable text", async () => {
-    vi.doMock("pdfjs-dist", () => ({
-      version: "6.1.200",
+    vi.doMock("pdfjs-dist/legacy/build/pdf.mjs", () => ({
       GlobalWorkerOptions: { workerSrc: "" },
       getDocument: () => ({
         promise: Promise.resolve({
@@ -120,8 +120,7 @@ describe("Doc Classifier PDF extraction", () => {
   });
 
   it("extracts text from PDFs with selectable content", async () => {
-    vi.doMock("pdfjs-dist", () => ({
-      version: "6.1.200",
+    vi.doMock("pdfjs-dist/legacy/build/pdf.mjs", () => ({
       GlobalWorkerOptions: { workerSrc: "" },
       getDocument: () => ({
         promise: Promise.resolve({

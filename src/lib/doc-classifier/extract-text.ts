@@ -66,12 +66,39 @@ async function readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
   return file.arrayBuffer();
 }
 
+const PDF_WORKER_SRC = "/pdf.worker.min.mjs";
+
+function isPdfWorkerError(message: string): boolean {
+  return /worker|Failed to fetch dynamically imported module/i.test(message);
+}
+
+function isScannedPdfError(message: string): boolean {
+  return /no selectable text|scanned|image-only|ocr/i.test(message);
+}
+
 async function extractPdfText(file: File): Promise<string> {
-  const pdfjs = await import("pdfjs-dist");
-  pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+  if (typeof window === "undefined") {
+    throw new Error("PDF extraction runs in the browser only");
+  }
+
+  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  pdfjs.GlobalWorkerOptions.workerSrc = PDF_WORKER_SRC;
 
   const data = await readFileAsArrayBuffer(file);
-  const doc = await pdfjs.getDocument({ data }).promise;
+
+  let doc;
+  try {
+    doc = await pdfjs.getDocument({ data }).promise;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to open PDF";
+    if (isPdfWorkerError(message)) {
+      throw new Error(
+        "PDF.js worker could not load — refresh the page and try again"
+      );
+    }
+    throw new Error(`Could not read PDF: ${message}`);
+  }
+
   const pages: string[] = [];
 
   for (let i = 1; i <= doc.numPages; i += 1) {
@@ -88,7 +115,7 @@ async function extractPdfText(file: File): Promise<string> {
   const text = pages.join("\n\n").trim();
   if (!text) {
     throw new Error(
-      "No selectable text found — scanned PDFs need OCR (use production Streamlit app)"
+      "No selectable text found — this PDF looks scanned or image-only. Use the production Streamlit app for OCR, or paste extracted text in the Paste document tab."
     );
   }
   return text;
@@ -271,7 +298,14 @@ export async function extractTextFromFile(file: File): Promise<ExtractedDocument
       },
     ];
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Extraction failed";
+    let message = err instanceof Error ? err.message : "Extraction failed";
+    if (format === "pdf" && isPdfWorkerError(message)) {
+      message =
+        "PDF.js worker could not load — refresh the page and try again";
+    } else if (format === "pdf" && isScannedPdfError(message)) {
+      message =
+        "No selectable text found — this PDF looks scanned or image-only. Use the production Streamlit app for OCR, or paste extracted text in the Paste document tab.";
+    }
     return [
       {
         id: makeId("error"),
