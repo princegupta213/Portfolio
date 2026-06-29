@@ -16,46 +16,6 @@ export interface Project {
 
 export const projects: Project[] = [
   {
-    id: "checkout-friction",
-    title: "CheckoutFriction",
-    subtitle: "Checkout Drop-off Diagnoser",
-    description:
-      "E-commerce growth PM simulator: 4-step checkout funnel with toggles for autofill address, guest checkout, and Express Apple Pay. Live bar chart shows drop-off at each step so you can quantify conversion uplift before allocating dev resources.",
-    tags: ["Growth PM", "E-commerce", "Conversion", "Funnel Analytics"],
-    href: "/projects/checkout-friction",
-    caseStudyHref: "/projects/checkout-friction/case-study",
-    docsHref: "/docs/checkout-friction-PRD",
-    featured: true,
-    accent: "emerald",
-    metrics: [
-      { label: "North star", value: "Abandonment" },
-      { label: "Funnel steps", value: "4" },
-      { label: "Mobile-first", value: "Responsive" },
-    ],
-    role: "Growth PM & Builder",
-    timeline: "2026",
-  },
-  {
-    id: "export-hub",
-    title: "ExportHub",
-    subtitle: "Custom SaaS Report & Format Generator",
-    description:
-      "B2B export utility: select columns from mock tables, pick PDF/CSV/JSON format and Classic/Modern/High-Contrast themes, and preview the compiled report live before downloading — no messy CSV dumps for executives.",
-    tags: ["B2B SaaS", "Reporting", "Export", "Product UX"],
-    href: "/projects/export-hub",
-    caseStudyHref: "/projects/export-hub/case-study",
-    docsHref: "/docs/export-hub-PRD",
-    featured: true,
-    accent: "indigo",
-    metrics: [
-      { label: "Preview", value: "< 150 ms" },
-      { label: "Formats", value: "3" },
-      { label: "Themes", value: "3" },
-    ],
-    role: "Product Manager & Builder",
-    timeline: "2026",
-  },
-  {
     id: "data-synth",
     title: "DataSynth",
     subtitle: "Synthetic Feedback Generator",
@@ -73,26 +33,6 @@ export const projects: Project[] = [
       { label: "Gen time", value: "< 8 s" },
     ],
     role: "Growth PM & Builder",
-    timeline: "2026",
-  },
-  {
-    id: "voice-flow",
-    title: "VoiceFlow",
-    subtitle: "Multi-Modal Translation Latency Tracker",
-    description:
-      "Platform PM diagnostic dashboard: live breakdown of voice translation latency across STT, translation, and TTS hops. Tune audio chunk size (200–1000 ms) and Fast vs. Accurate model stacks to explore the latency vs. BLEU quality frontier.",
-    tags: ["Platform PM", "Voice Translation", "Latency", "Multi-Modal AI"],
-    href: "/projects/voice-flow",
-    caseStudyHref: "/projects/voice-flow/case-study",
-    docsHref: "/docs/voice-flow-PRD",
-    featured: true,
-    accent: "indigo",
-    metrics: [
-      { label: "North star", value: "< 800 ms" },
-      { label: "Guardrail", value: "BLEU > 72%" },
-      { label: "Pipeline hops", value: "3" },
-    ],
-    role: "Platform PM & Builder",
     timeline: "2026",
   },
   {
