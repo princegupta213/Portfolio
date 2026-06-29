@@ -103,6 +103,8 @@ export const projects: Project[] = [
       "Marketplace PM simulator: grid-map of ride-share zones where supply (drivers) vs. demand (orders) drives surge pricing, driver accept rates, and checkout conversion. Tweak weather events, surge multiplier caps, and watch Order Match Rate vs. Checkout Abandonment in real time.",
     tags: ["Marketplace PM", "Surge Pricing", "Supply/Demand", "Gig Economy"],
     href: "/projects/surge-sim",
+    caseStudyHref: "/projects/surge-sim/case-study",
+    docsHref: "/docs/surge-sim-PRD",
     featured: true,
     accent: "emerald",
     metrics: [

@@ -9,6 +9,7 @@ const DOC_TITLES: Record<string, string> = {
   "data-synth-PRD": "DataSynth PRD",
   "export-hub-PRD": "ExportHub PRD",
   "checkout-friction-PRD": "CheckoutFriction PRD",
+  "surge-sim-PRD": "SurgeSim PRD",
   "prompt-route-PRD": "PromptRoute PRD",
   "claim-resolve-PRD": "ClaimResolve PRD",
   "doc-classifier-PRD": "Document Classifier PRD",
