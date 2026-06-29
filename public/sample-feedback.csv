@@ -1,0 +1,107 @@
+review,rating,date,source
+"The app crashes every time I open the settings menu. Very frustrating.",1,2025-01-15,App Store
+"Love the clean design but search is broken — can't find anything.",3,2025-01-16,App Store
+"Login failed three times today. Password reset email never arrived.",2,2025-01-17,Google Play
+"Notifications are spamming me every hour. Need a mute option ASAP.",2,2025-01-18,App Store
+"Great app overall! Easy to use and fast.",5,2025-01-19,Google Play
+"Too expensive for what you get. Premium plan isn't worth it.",2,2025-01-20,App Store
+"Customer support took 5 days to respond. Unacceptable.",1,2025-01-21,Google Play
+"Please add dark mode! My eyes hurt using this at night.",4,2025-01-22,App Store
+"Onboarding was confusing. Took me 20 minutes to figure out basics.",3,2025-01-23,Google Play
+"Data didn't sync between my phone and tablet. Lost my progress.",1,2025-01-24,App Store
+"The UI is cluttered and hard to navigate. Too many taps to do simple things.",2,2025-01-25,Google Play
+"App is slow and laggy on older devices. Needs optimization.",2,2025-01-26,App Store
+"Wish there was an export feature. Can't get my data out.",3,2025-01-27,Google Play
+"Sign up with Google works great. Smooth experience.",5,2025-01-28,App Store
+"Billing charged me twice. Still waiting for refund.",1,2025-01-29,Google Play
+"Search results are irrelevant. Filter options would help.",2,2025-01-30,App Store
+"Best productivity app I've used. Highly recommend!",5,2025-01-31,Google Play
+"Bug: app freezes when uploading large files.",2,2025-02-01,App Store
+"Tutorial on first launch was helpful. Good onboarding.",4,2025-02-02,Google Play
+"Missing offline mode. Useless without internet.",2,2025-02-03,App Store
+"Force closed 4 times in one session. Uninstalling.",1,2025-02-04,Google Play
+"Notification settings are buried. Can't find them anywhere.",3,2025-02-05,App Store
+"Love the widget! Please add more widget sizes.",5,2025-02-06,Google Play
+"Confusing pricing page. What's the difference between plans?",2,2025-02-07,App Store
+"Support chat was helpful once I got through. Response time too slow.",3,2025-02-08,Google Play
+"App drains my battery like crazy. Background activity issue?",2,2025-02-09,App Store
+"Can't log in after update. Stuck on loading screen.",1,2025-02-10,Google Play
+"Beautiful interface. Intuitive and user friendly.",5,2025-02-11,App Store
+"Need integration with Slack. Would make this perfect for our team.",4,2025-02-12,Google Play
+"Free trial ended without warning. Got charged unexpectedly.",2,2025-02-13,App Store
+"Search is the worst part of this app. Completely broken.",1,2025-02-14,Google Play
+"Crashes on startup after latest update. Please fix!",1,2025-02-15,App Store
+"Sync works perfectly now after the last patch. Great job!",5,2025-02-16,Google Play
+"Too many push notifications. Even after turning them off.",2,2025-02-17,App Store
+"Layout changed and I can't find my saved items. Bad UX decision.",2,2025-02-18,Google Play
+"Password reset link expired before I could use it. Auth is broken.",2,2025-02-19,App Store
+"Feature request: bulk edit would save me hours each week.",4,2025-02-20,Google Play
+"Loading times are terrible. Spinning wheel for 30+ seconds.",2,2025-02-21,App Store
+"Help documentation is outdated. FAQ doesn't match current app.",3,2025-02-22,Google Play
+"Excellent app! Does exactly what I need.",5,2025-02-23,App Store
+"Glitch in the payment flow. Card declined but money was taken.",1,2025-02-24,Google Play
+"Dark mode finally added — thank you! Still need font size options.",4,2025-02-25,App Store
+"New user guide was too long. Just let me explore.",3,2025-02-26,Google Play
+"Can't cancel subscription in app. Had to email support.",2,2025-02-27,App Store
+"App is unusable without fixing the crash bug. One star until fixed.",1,2025-02-28,Google Play
+"Filters in search would be amazing. Currently just a basic text box.",3,2025-03-01,App Store
+"Smooth performance on iPhone 15. No complaints.",5,2025-03-02,Google Play
+"Account locked for no reason. Verification code never sent.",1,2025-03-03,App Store
+"Reminders are useful but I get too many. Need smart grouping.",3,2025-03-04,Google Play
+"Missing API access for developers. Would unlock enterprise use.",4,2025-03-05,App Store
+"Refund process was painful. Took 3 weeks.",2,2025-03-06,Google Play
+"Navigation menu is confusing. Settings moved and I can't find export.",2,2025-03-07,App Store
+"Works well for basic tasks. Advanced features feel half-baked.",3,2025-03-08,Google Play
+"Lost all my data after reinstall. No cloud backup warning.",1,2025-03-09,App Store
+"Sign in with Apple broken on iOS 18.",2,2025-03-10,Google Play
+"Love the color scheme and clean design.",5,2025-03-11,App Store
+"Premium features should be clearer. Felt tricked into paying.",2,2025-03-12,Google Play
+"Support ticket still open after 2 weeks. No one replied.",1,2025-03-13,App Store
+"Please add share to social media. Basic feature that's missing.",3,2025-03-14,Google Play
+"App freezes when switching tabs quickly.",2,2025-03-15,App Store
+"Getting started tutorial skipped important steps.",3,2025-03-16,Google Play
+"Battery drain fixed in latest update. Much better now.",4,2025-03-17,App Store
+"Can't find how to change notification frequency.",2,2025-03-18,Google Play
+"Search found what I needed instantly. Improved a lot!",5,2025-03-19,App Store
+"Overpriced compared to competitors. Same features cost half elsewhere.",2,2025-03-20,Google Play
+"Error message when saving. Data loss risk is scary.",1,2025-03-21,App Store
+"UI refresh looks modern. Much easier to navigate now.",5,2025-03-22,Google Play
+"2FA setup was confusing. No clear instructions.",3,2025-03-23,App Store
+"Would love calendar sync integration.",4,2025-03-24,Google Play
+"App crashes when I attach photos. Major bug.",1,2025-03-25,App Store
+"Customer service agent was great but wait time was 45 minutes.",3,2025-03-26,Google Play
+"Cluttered home screen. Too much going on.",2,2025-03-27,App Store
+"Cross device sync is unreliable. Changes don't appear on iPad.",2,2025-03-28,Google Play
+"Free version is too limited. Paywall hits too early.",2,2025-03-29,App Store
+"Fast and responsive. Best in category.",5,2025-03-30,Google Play
+"Login loop after password change. Can't access account.",1,2025-03-31,App Store
+"Alert badges won't clear even after reading everything.",3,2025-04-01,Google Play
+"Import from CSV would save migration time.",4,2025-04-02,App Store
+"Slow loading on WiFi and cellular. Performance regression.",2,2025-04-03,Google Play
+"Onboarding video was perfect length. Understood app in 2 minutes.",5,2025-04-04,App Store
+"Billing page shows wrong currency. Support couldn't help.",2,2025-04-05,Google Play
+"Hard to find the help center. Buried in settings.",3,2025-04-06,App Store
+"Feature parity with web app please. Mobile missing key tools.",3,2025-04-07,Google Play
+"Random crashes during export. Lost work twice.",1,2025-04-08,App Store
+"Beautiful dark mode implementation.",5,2025-04-09,Google Play
+"Spam notifications for features I don't use.",2,2025-04-10,App Store
+"Search doesn't support synonyms. Have to guess exact keywords.",2,2025-04-11,Google Play
+"Account recovery impossible without phone number on file.",1,2025-04-12,App Store
+"Widget on home screen is a game changer!",5,2025-04-13,Google Play
+"Subscription cancel button hidden. Feels intentional.",2,2025-04-14,App Store
+"Sync delay of several hours between devices.",2,2025-04-15,Google Play
+"New update broke login entirely. Rollback please.",1,2025-04-16,App Store
+"Intuitive layout. My team adopted it in one day.",5,2025-04-17,Google Play
+"Missing undo feature. Accidental deletes are permanent.",3,2025-04-18,App Store
+"Push alerts at 3am despite quiet hours setting.",2,2025-04-19,Google Play
+"Helpful FAQ but no live chat option.",3,2025-04-20,App Store
+"Lag when scrolling long lists. Needs virtual scrolling.",2,2025-04-21,Google Play
+"Great value for the pro plan. Worth every penny.",5,2025-04-22,App Store
+"Can't filter search by date. Basic functionality missing.",2,2025-04-23,Google Play
+"Verify email link goes to 404 page.",1,2025-04-24,App Store
+"Setup wizard could ask fewer questions upfront.",3,2025-04-25,Google Play
+"Backup and restore worked flawlessly.",5,2025-04-26,App Store
+"Interface feels dated compared to alternatives.",2,2025-04-27,Google Play
+"Too many bugs for a paid app. Quality has dropped.",2,2025-04-28,App Store
+"Request: team collaboration features.",4,2025-04-29,Google Play
+"Refund denied without explanation. Terrible billing support.",1,2025-04-30,App Store

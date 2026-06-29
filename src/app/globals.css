@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fafafa;
+  --foreground: #18181b;
+  --accent: #4f46e5;
+  --accent-light: #eef2ff;
+  --muted: #71717a;
+  --border: #e4e4e7;
+  --card: #ffffff;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+::selection {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+@keyframes blob-drift {
+  0%,
+  100% {
+    transform: translate(-50%, 0) scale(1);
+  }
+  50% {
+    transform: translate(-50%, -20px) scale(1.05);
+  }
+}
+
+@keyframes blob-drift-alt {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translate(30px, -15px) scale(1.1);
+    opacity: 0.55;
+  }
+}
+
+.animate-blob-drift {
+  animation: blob-drift 12s ease-in-out infinite;
+}
+
+.animate-blob-drift-alt {
+  animation: blob-drift-alt 10s ease-in-out infinite;
+}
+
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 1.5px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s cubic-bezier(0.21, 0.47, 0.32, 0.98);
+}
+
+.nav-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .animate-blob-drift,
+  .animate-blob-drift-alt {
+    animation: none;
+  }
+
+  .nav-link::after {
+    transition: none;
+  }
+}
