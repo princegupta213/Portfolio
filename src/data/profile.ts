@@ -34,13 +34,14 @@ export interface ExperienceEntry {
 
 export const experience: ExperienceEntry[] = [
   {
-    title: "Product & Business Operations Intern",
+    title: "Business Strategy Intern",
     org: "Angel One Ltd. · LAMF pre-deployment",
-    period: "Aug 2025 – Present",
+    period: "Aug 2025 – Feb 2026",
     bullets: [
-      "Built the Business Rule Engine — translated NBFC lending policies into structured product logic for the LAMF MVP.",
-      "Designed B2B GTM with Marketing (positioning, segmentation, launch) and built a propensity model for campaign targeting.",
-      "Analyzed B2B/B2C funnels and worked with Product to prioritize onboarding improvements.",
+      "Collaborated with product, marketing, and NBFC partner teams to develop the Business Rule Engine, translating complex lending terms into personalized loan offers for the LAMF MVP.",
+      "Prepared comprehensive Go-To-Market (GTM) launch strategies for the MVP, covering commercial pricing logic, marketing cohort targeting, and campaign parameters.",
+      "Built a machine learning propensity model to enhance targeted marketing outreach and maximize early user conversions.",
+      "Analyzed B2B/B2C onboarding funnels and user journeys with Product and Business teams to locate drop-off points, optimizing the end-to-end customer onboarding flow.",
     ],
   },
   {
@@ -48,8 +49,11 @@ export const experience: ExperienceEntry[] = [
     org: "Indian Oil Corporation Ltd.",
     period: "May 2024 – Jul 2024",
     bullets: [
-      "Letter of Recommendation · XP95 brand strategy & Indian Oil One app impact model; EV market strategy projecting 25% growth.",
-      "Automated customer ID via ANPR (Computer Vision), cutting manual errors by 45%.",
+      "Received a Letter of Recommendation from the General Manager for outstanding performance in product and strategy deliverables (IOCL Net Profit: INR 396B+).",
+      "Formulated 15+ premium brand strategies for XP95 high-octane fuel to improve its 6% market penetration, analyzing user preferences and competitive pricing models.",
+      "Conceptualized and launched pump-specific QR payment tags integrated into the Indian Oil One app, conducting field research with operators to simplify the checkout flow and reduce manual entry errors by 45%.",
+      "Designed IOCL's EV charging station expansion roadmap, analyzing SWOT for 8+ major competitors and formulating tech partnerships to target a 35% market share.",
+      "Automated vehicle tracking at fuel pumps using computer vision-based ANPR technology to capture customer metrics, reducing station check-in overhead.",
     ],
   },
 ];
@@ -60,8 +64,10 @@ export const leadership = [
     org: "Institute Technical Council, IIT Bombay",
     period: "Apr 2024 – Mar 2025",
     bullets: [
-      "Led council for 13,000+ students across 13+ clubs; INR 15M budget (60% YoY). Setup of 18 MoE labs (INR 80M).",
-      "Audited INR 50M+ inventory; pioneered INR 20M alumni fund; digitalized inventory dashboards.",
+      "Led the administrative body representing 13,000+ students across 13+ technical clubs, securing a budget of INR 15M (60% YoY increase).",
+      "Managed the deployment of 18 state-of-the-art labs under the Ministry of Education's Institute of Eminence initiative (Budget: INR 80M).",
+      "Conducted a comprehensive audit of INR 20M+ worth of equipment and built a centralized inventory management portal from scratch, streamlining tracking and eliminating discrepancy losses.",
+      "Pioneered an INR 20M alumni fund program to incentivize student-led deep tech projects.",
     ],
   },
   {
@@ -69,7 +75,7 @@ export const leadership = [
     org: "Inter-IIT Tech Meet 13.0",
     period: "Aug 2024 – Dec 2024",
     bullets: [
-      "25+ member team, 2,000+ participants, INR 20M+ budget; secured 100+ sponsorships for Pan IIT Tech Expo.",
+      "Supervised a budget of INR 20M+ and led a 3-tier team of 25+ members, securing 100+ sponsorships for the first-ever Pan-IIT Tech Expo while managing high-pressure logistics concurrently with the placement session.",
     ],
   },
   {
@@ -77,7 +83,9 @@ export const leadership = [
     org: "Abhyuday, IIT Bombay",
     period: "May 2023 – Apr 2024",
     bullets: [
-      "Institute Special Mention (top 1%); 1,000+ volunteers, INR 7M budget (22% cost cut), TEDxIITBombay (5,000+ audience).",
+      "Felicitated with the Institute Organizational Special Mention award (given to top 1% of student leaders) by the Dean of Student Affairs, IIT Bombay.",
+      "Successfully organized the first-ever student-led TEDxIITBombay (5,000+ audience) from scratch in just 3 weeks after resolving critical administrative blocks.",
+      "Managed Abhyuday's operations budget of INR 7M, implementing structural resource optimizations that achieved a 22% y-o-y cost reduction.",
     ],
   },
 ];
