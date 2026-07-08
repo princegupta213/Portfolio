@@ -17,10 +17,10 @@ export interface Project {
 export const projects: Project[] = [
   {
     id: "amazing-hypatia",
-    title: "Ava (amazing-hypatia)",
-    subtitle: "Autonomous AI Product Employee Workspace",
+    title: "Launch Employee (Ava)",
+    subtitle: "Autonomous AI Product Launch Employee Workspace",
     description:
-      "A proactive digital teammate that manages product launches, GTM checklists, and coordinates multi-document spaces. Built a Consistency Engine that automatically matches dependent parameters (Target Audience, Preference) in real-time, a Time Travel simulator to test post-launch scenarios (anomalies, support tickets, competitor clones), and an interactive Discuss drawer for multi-turn tradeoff debates.",
+      "A proactive digital teammate that manages product launches, GTM checklists, and coordinates multi-document spaces. Built a Consistency Engine that automatically matches dependent parameters in real-time, a Time Travel simulator to test post-launch scenarios (support tickets, competitor clones), and an interactive Discuss drawer for multi-turn tradeoff debates.",
     tags: ["Agentic AI", "Product Strategy", "Next.js", "State Engine"],
     href: "https://amazing-hypatia.vercel.app",
     caseStudyHref: "https://amazing-hypatia.vercel.app",
@@ -29,10 +29,10 @@ export const projects: Project[] = [
     accent: "indigo",
     metrics: [
       { label: "Launch confidence", value: "84% - 98%" },
-      { label: "Seeded templates", value: "7 Folders" },
+      { label: "Enterprise presets", value: "7 Workspaces" },
       { label: "Engine latency", value: "< 1.5s" },
     ],
-    role: "Full-Stack Builder & Architect",
+    role: "AI Product PM & Builder",
     timeline: "2026",
   },
   {
