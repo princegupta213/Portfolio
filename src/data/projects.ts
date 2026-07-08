@@ -22,9 +22,9 @@ export const projects: Project[] = [
     description:
       "A proactive digital teammate that manages product launches, GTM checklists, and coordinates multi-document spaces. Built a Consistency Engine that automatically matches dependent parameters in real-time, a Time Travel simulator to test post-launch scenarios (support tickets, competitor clones), and an interactive Discuss drawer for multi-turn tradeoff debates.",
     tags: ["Agentic AI", "Product Strategy", "Next.js", "State Engine"],
-    href: "https://amazing-hypatia.vercel.app",
-    caseStudyHref: "https://amazing-hypatia.vercel.app",
-    docsHref: "https://github.com/princegupta213/amazing-hypatia",
+    href: "/projects/amazing-hypatia",
+    caseStudyHref: "/projects/amazing-hypatia/case-study",
+    docsHref: "/docs/amazing-hypatia-PRD",
     featured: true,
     accent: "indigo",
     metrics: [
