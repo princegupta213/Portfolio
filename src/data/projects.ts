@@ -124,7 +124,7 @@ export const projects: Project[] = [
     tags: ["Product Strategy", "User Research", "Next.js", "ICE Framework"],
     href: "/projects/feedback-analyzer",
     caseStudyHref: "/projects/feedback-analyzer/case-study",
-    docsHref: "/docs/PRD",
+    docsHref: "/docs/feedback-analyzer-PRD",
     featured: true,
     accent: "indigo",
     metrics: [

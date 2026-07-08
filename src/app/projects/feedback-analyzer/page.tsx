@@ -16,7 +16,7 @@ export default function FeedbackAnalyzerPage() {
           </Link>
           <nav className="flex items-center gap-6">
             <Link
-              href="/docs/PRD"
+              href="/docs/feedback-analyzer-PRD"
               className="inline-flex items-center gap-1.5 text-sm text-zinc-600 hover:text-zinc-900"
             >
               <FileText className="h-4 w-4" />

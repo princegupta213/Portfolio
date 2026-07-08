@@ -92,7 +92,7 @@ export const feedbackAnalyzerCaseStudy = {
 
   links: {
     liveDemo: "/projects/feedback-analyzer",
-    prd: "/docs/PRD",
+    prd: "/docs/feedback-analyzer-PRD",
     strategy: "/docs/product-strategy",
     research: "/docs/user-research-summary",
     caseStudy: "/projects/feedback-analyzer/case-study",

@@ -70,7 +70,7 @@ export const amazingHypatiaCaseStudy = {
     ],
   },
   links: {
-    liveDemo: "https://amazing-hypatia.vercel.app",
+    liveDemo: "/projects/amazing-hypatia",
     prd: "/docs/amazing-hypatia-PRD",
     caseStudy: "/projects/amazing-hypatia/case-study",
   },
