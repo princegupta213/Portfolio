@@ -11,6 +11,7 @@ const DOC_TITLES: Record<string, string> = {
   "prompt-route-PRD": "PromptRoute PRD",
   "claim-resolve-PRD": "ClaimResolve PRD",
   "doc-classifier-PRD": "Document Classifier PRD",
+  "amazing-hypatia-PRD": "Launch Employee PRD",
   PRD: "Feedback Analyzer PRD",
   "user-research-summary": "User Research Summary",
   "product-strategy": "Product Strategy",
