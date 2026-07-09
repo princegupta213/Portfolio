@@ -89,6 +89,7 @@ export function PromptRouteApp() {
   const [customPrompt, setCustomPrompt] = useState("");
   const [classifierPreview, setClassifierPreview] = useState("");
   const [semanticCacheEnabled, setSemanticCacheEnabled] = useState(false);
+  const [monthlyVolume, setMonthlyVolume] = useState(500000);
 
   const budgetCap = getDailyBudgetCap(scenario);
   const budgetUsedPct = Math.min(100, (dailySpendUsd / budgetCap) * 100);
@@ -372,6 +373,86 @@ export function PromptRouteApp() {
           </div>
 
           <PromptRouteFlowDiagram />
+
+          {/* Scale & ROI Projection Calculator */}
+          <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <DollarSign className={`h-5 w-5 ${theme.accent}`} />
+              <h2 className="font-semibold text-zinc-900">Scale & ROI Projection Calculator</h2>
+            </div>
+            <p className="mb-4 text-xs text-zinc-500 leading-relaxed">
+              Model your annual enterprise savings by scaling PromptRoute's optimization policies and semantic caching rate to your production workloads.
+            </p>
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-4">
+                <div>
+                  <div className="mb-2 flex items-center justify-between text-xs font-semibold text-zinc-700">
+                    <span>MONTHLY QUERY VOLUME</span>
+                    <span className="font-mono bg-zinc-100 px-2 py-0.5 rounded text-indigo-650 font-bold">
+                      {monthlyVolume.toLocaleString()} q/mo
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={50000}
+                    max={5000000}
+                    step={50000}
+                    value={monthlyVolume}
+                    onChange={(e) => setMonthlyVolume(Number(e.target.value))}
+                    className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-zinc-105 accent-indigo-600"
+                  />
+                  <div className="mt-1 flex justify-between text-[10px] text-zinc-400">
+                    <span>50k</span>
+                    <span>2.5M</span>
+                    <span>5M</span>
+                  </div>
+                </div>
+
+                <div className="rounded-lg bg-zinc-50 p-3.5 border border-zinc-100 text-xs space-y-2">
+                  <div className="flex justify-between text-zinc-600">
+                    <span>Baseline Cost (GPT-4o only)</span>
+                    <span className="font-mono text-zinc-850 font-medium">
+                      ${(monthlyVolume * 0.015).toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-zinc-600">
+                    <span>Optimized Cost (PromptRoute)</span>
+                    <span className="font-mono text-indigo-600 font-semibold">
+                      ${(monthlyVolume * 0.0083).toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo
+                    </span>
+                  </div>
+                  <div className="border-t border-zinc-200 pt-1.5 flex justify-between text-zinc-900 font-semibold font-bold">
+                    <span>Monthly Savings</span>
+                    <span className="font-mono text-emerald-600">
+                      +${(monthlyVolume * (0.015 - 0.0083)).toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl border border-zinc-100 bg-indigo-50/10 p-4 flex flex-col justify-between">
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Annual Cash Saved</span>
+                  <div>
+                    <p className="text-2xl font-extrabold text-indigo-600 tracking-tight">
+                      ${(monthlyVolume * (0.015 - 0.0083) * 12).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </p>
+                    <p className="text-[10px] text-zinc-500 mt-1">Direct API spend reduction</p>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-zinc-100 bg-emerald-50/10 p-4 flex flex-col justify-between">
+                  <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Payback Period</span>
+                  <div>
+                    <p className="text-2xl font-extrabold text-emerald-600 tracking-tight">
+                      {Math.max(0.1, Math.round((5000 / (monthlyVolume * (0.015 - 0.0083))) * 10) / 10)} mo
+                    </p>
+                    <p className="text-[10px] text-zinc-500 mt-1">Based on $5k setup cost</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div className="rounded-xl border border-zinc-200 bg-white p-6">
             <h3 className="mb-4 font-semibold text-zinc-900">Model Catalog & Pricing</h3>

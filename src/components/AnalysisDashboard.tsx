@@ -59,6 +59,7 @@ export function AnalysisDashboard({
 }: Props) {
   const [stakeholderView, setStakeholderView] = useState<StakeholderView>("pm");
   const [scoringFramework, setScoringFramework] = useState<"ice" | "rice">("ice");
+  const [devVelocity, setDevVelocity] = useState(100);
   const { overallSentiment, themes, opportunities, topPainPoints, summary } = result;
 
   const themeIdsForView = STAKEHOLDER_THEME_FILTER[stakeholderView];
@@ -376,6 +377,116 @@ export function AnalysisDashboard({
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Gantt Chart Roadmap Timeline */}
+        <div className="mt-6 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-zinc-900">Interactive Gantt Roadmap Timeline</h3>
+              <p className="text-xs text-zinc-500">Scoping timeline based on prioritized feature releases.</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <span className="text-xs font-semibold text-zinc-700 block">DEVELOPER VELOCITY</span>
+                <span className="text-[10px] text-indigo-650 font-bold bg-indigo-50 px-2 py-0.5 rounded font-mono">
+                  {devVelocity}%
+                </span>
+              </div>
+              <input
+                type="range"
+                min={50}
+                max={150}
+                step={10}
+                value={devVelocity}
+                onChange={(e) => setDevVelocity(Number(e.target.value))}
+                className="h-1.5 w-32 cursor-pointer appearance-none rounded-lg bg-zinc-100 accent-indigo-600"
+              />
+            </div>
+          </div>
+
+          {/* Calculations */}
+          {(() => {
+            const scale = 100 / devVelocity;
+            const p0Len = Math.round(4 * scale * 10) / 10;
+            const p1Len = Math.round(4 * scale * 10) / 10;
+            const p2Len = Math.round(3 * scale * 10) / 10;
+            const totalWeeks = Math.round((p0Len + p1Len + p2Len) * 10) / 10;
+
+            return (
+              <div className="space-y-4">
+                {/* Grid Timeline Header */}
+                <div className="relative border-b border-zinc-150 pb-2">
+                  <div className="flex text-[10px] font-mono text-zinc-400 justify-between">
+                    <span>Week 1</span>
+                    <span>Week {Math.round(totalWeeks / 2)}</span>
+                    <span>Week {totalWeeks}</span>
+                  </div>
+                </div>
+
+                {/* Gantt Rows */}
+                <div className="space-y-3.5">
+                  {/* P0 Row */}
+                  <div className="grid grid-cols-12 items-center gap-3">
+                    <div className="col-span-3 text-xs font-semibold text-zinc-700 flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded bg-rose-500 shrink-0"></span>
+                      P0 Initiatives
+                    </div>
+                    <div className="col-span-9 bg-zinc-100 h-6 rounded-lg relative overflow-hidden">
+                      <div
+                        className="h-full bg-rose-500/90 rounded-lg flex items-center px-3 text-[10px] font-bold text-white shadow-sm transition-all duration-300"
+                        style={{ width: `${(p0Len / totalWeeks) * 100}%` }}
+                      >
+                        {p0Len} weeks
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* P1 Row */}
+                  <div className="grid grid-cols-12 items-center gap-3">
+                    <div className="col-span-3 text-xs font-semibold text-zinc-700 flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded bg-amber-500 shrink-0"></span>
+                      P1 Initiatives
+                    </div>
+                    <div className="col-span-9 bg-zinc-100 h-6 rounded-lg relative">
+                      <div
+                        className="h-full bg-amber-500/90 rounded-lg flex items-center px-3 text-[10px] font-bold text-white shadow-sm absolute top-0 transition-all duration-300"
+                        style={{
+                          left: `${(p0Len / totalWeeks) * 100}%`,
+                          width: `${(p1Len / totalWeeks) * 100}%`,
+                        }}
+                      >
+                        {p1Len} weeks
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* P2 Row */}
+                  <div className="grid grid-cols-12 items-center gap-3">
+                    <div className="col-span-3 text-xs font-semibold text-zinc-700 flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded bg-indigo-500 shrink-0"></span>
+                      P2 Initiatives
+                    </div>
+                    <div className="col-span-9 bg-zinc-100 h-6 rounded-lg relative">
+                      <div
+                        className="h-full bg-indigo-500/90 rounded-lg flex items-center px-3 text-[10px] font-bold text-white shadow-sm absolute top-0 transition-all duration-300"
+                        style={{
+                          left: `${((p0Len + p1Len) / totalWeeks) * 100}%`,
+                          width: `${(p2Len / totalWeeks) * 100}%`,
+                        }}
+                      >
+                        {p2Len} weeks
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-[10px] text-zinc-400 italic">
+                  *Timeline dynamically scaled. Adjusting Developer Velocity shifts release dates and duration allocations.
+                </p>
+              </div>
+            );
+          })()}
         </div>
       </section>
 

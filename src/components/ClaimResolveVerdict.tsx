@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useState, useEffect } from "react";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -79,6 +79,14 @@ export function ClaimResolveVerdict({
   const [showAllRules, setShowAllRules] = useState(false);
   const [expandedBatchId, setExpandedBatchId] = useState<string | null>(null);
 
+  const [subject, setSubject] = useState(decision.emailDraft.subject);
+  const [emailBody, setEmailBody] = useState(decision.emailDraft.body);
+
+  useEffect(() => {
+    setSubject(decision.emailDraft.subject);
+    setEmailBody(decision.emailDraft.body);
+  }, [decision]);
+
   const config = VERDICT_CONFIG[decision.verdict];
   const Icon = config.icon;
   const isBatch = batchDecisions && batchDecisions.length > 1;
@@ -122,7 +130,7 @@ export function ClaimResolveVerdict({
 
   const copyEmail = async () => {
     await navigator.clipboard.writeText(
-      `Subject: ${decision.emailDraft.subject}\n\n${decision.emailDraft.body}`
+      `Subject: ${subject}\n\n${emailBody}`
     );
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -394,13 +402,25 @@ export function ClaimResolveVerdict({
                   )}
                 </button>
               </div>
-              <div className="rounded-lg bg-zinc-50 p-4">
-                <div className="mb-3 border-b border-zinc-200 pb-2 text-sm font-medium text-zinc-800">
-                  Subject: {decision.emailDraft.subject}
+              <div className="rounded-lg bg-zinc-50 p-4 border border-zinc-150 space-y-3">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Email Subject</span>
+                  <input
+                    type="text"
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    className="w-full rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-850 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
                 </div>
-                <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-zinc-600">
-                  {decision.emailDraft.body}
-                </pre>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Email Body (Edit Live)</span>
+                  <textarea
+                    value={emailBody}
+                    onChange={(e) => setEmailBody(e.target.value)}
+                    rows={6}
+                    className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-650 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-sans leading-relaxed"
+                  />
+                </div>
               </div>
             </div>
           </div>

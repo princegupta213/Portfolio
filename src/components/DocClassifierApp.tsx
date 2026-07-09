@@ -62,6 +62,22 @@ function makeQueueId(): string {
   return `q-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function redactPII(text: string): string {
+  if (!text) return "";
+  let redacted = text;
+  // Aadhaar ID
+  redacted = redacted.replace(/\b\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/g, "████-████-████");
+  // SSN
+  redacted = redacted.replace(/\b\d{3}-\d{2}-\d{4}\b/g, "███-██-████");
+  // Credit cards
+  redacted = redacted.replace(/\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/g, "████-████-████-████");
+  // Emails
+  redacted = redacted.replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g, "[REDACTED_EMAIL]");
+  // Phone numbers
+  redacted = redacted.replace(/\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g, "[REDACTED_PHONE]");
+  return redacted;
+}
+
 export function DocClassifierApp() {
   const [mode, setMode] = useState<ClassifierMode>("batch");
   const [result, setResult] = useState<BatchClassificationResult | null>(null);
@@ -74,6 +90,7 @@ export function DocClassifierApp() {
 
   const [pasteName, setPasteName] = useState("document.pdf");
   const [pasteText, setPasteText] = useState("");
+  const [piiMaskingEnabled, setPiiMaskingEnabled] = useState(false);
 
   const appendAudit = useCallback((message: string) => {
     setAuditLog((prev) => [...prev, { time: auditTime(), message }]);
@@ -283,9 +300,10 @@ export function DocClassifierApp() {
     }
     setLoading(true);
     setError(null);
-    appendAudit(`Single-doc classify · ${pasteName || "pasted-doc"}`);
+    appendAudit(`Single-doc classify · ${pasteName || "pasted-doc"} ${piiMaskingEnabled ? "(PII Redaction Active)" : ""}`);
     setTimeout(() => {
-      const single = classifySingleText(pasteName || "pasted-doc", pasteText);
+      const textToClassify = piiMaskingEnabled ? redactPII(pasteText) : pasteText;
+      const single = classifySingleText(pasteName || "pasted-doc", textToClassify);
       showResult(
         {
           totalDocuments: 1,
@@ -304,7 +322,7 @@ export function DocClassifierApp() {
         pasteName || "pasted document"
       );
     }, 400);
-  }, [appendAudit, pasteName, pasteText, showResult]);
+  }, [appendAudit, pasteName, pasteText, piiMaskingEnabled, showResult]);
 
   const onDrop = useCallback(
     (e: React.DragEvent) => {
@@ -508,6 +526,26 @@ export function DocClassifierApp() {
                     placeholder="Paste document text here…"
                   />
                 </label>
+                <div className="mt-3 flex items-center justify-between rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-2.5">
+                  <div>
+                    <span className="text-xs font-semibold text-zinc-900 block">PII Redaction Engine</span>
+                    <span className="text-[10px] text-zinc-500">Automatically mask Aadhaar, SSN, Credit Cards, and Emails</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={piiMaskingEnabled}
+                    onChange={(e) => setPiiMaskingEnabled(e.target.checked)}
+                    className="rounded border-zinc-200 bg-white text-cyan-600 focus:ring-cyan-500 cursor-pointer"
+                  />
+                </div>
+                {piiMaskingEnabled && pasteText.trim() && (
+                  <div className="mt-3 space-y-1">
+                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider block">Redacted Output Preview</span>
+                    <div className="rounded-lg bg-zinc-900/5 p-3 border border-zinc-150 font-mono text-xs text-zinc-500 break-all max-h-40 overflow-y-auto whitespace-pre-wrap">
+                      {redactPII(pasteText)}
+                    </div>
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={classifyPaste}
