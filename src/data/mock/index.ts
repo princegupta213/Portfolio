@@ -1,4 +1,3 @@
-export * from "./surge-sim";
 export * from "./claim-resolve";
 export * from "./prompt-route";
 export * from "./doc-classifier";
@@ -8,7 +7,6 @@ export * from "./fitcheck";
 
 /** Registry of all portfolio project mock datasets */
 export const MOCK_DATA_REGISTRY = {
-  "surge-sim": { label: "SurgeSim", hasLiveDemo: true, sampleAction: "Load city scenario" },
   "claim-resolve": { label: "ClaimResolve", hasLiveDemo: true, sampleAction: "Try sample orders" },
   "prompt-route": { label: "PromptRoute", hasLiveDemo: true, sampleAction: "Run sample batch" },
   "feedback-analyzer": { label: "Feedback Analyzer", hasLiveDemo: true, sampleAction: "106 sample reviews" },

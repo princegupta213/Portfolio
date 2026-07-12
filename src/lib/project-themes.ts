@@ -1,6 +1,4 @@
 export type ProjectThemeId =
-  | "data-synth"
-  | "surge-sim"
   | "claim-resolve"
   | "prompt-route"
   | "feedback-analyzer"
@@ -25,42 +23,6 @@ export interface ProjectTheme {
 }
 
 export const PROJECT_THEMES: Record<ProjectThemeId, ProjectTheme> = {
-  "data-synth": {
-    id: "data-synth",
-    label: "DataSynth",
-    domain: "Growth PM · Synthetic Data",
-    badge: "bg-teal-50 ring-teal-200",
-    badgeText: "text-teal-800",
-    headline: "DataSynth",
-    description:
-      "Enterprise synthetic feedback lab — configure personas, sentiment mix, and compliance guardrails, then bulk-generate reviews for sandbox QA before launch.",
-    heroGradient: "from-teal-50 via-white to-emerald-50/40",
-    accent: "text-teal-700",
-    accentMuted: "bg-teal-600 hover:bg-teal-700",
-    ring: "ring-teal-500",
-    tabActive: "bg-teal-600 text-white shadow-sm",
-    pill: "bg-teal-50 text-teal-800 ring-teal-100",
-    statHighlight: "border-teal-200 bg-teal-50 text-teal-800",
-    statWarn: "border-amber-200 bg-amber-50 text-amber-800",
-  },
-  "surge-sim": {
-    id: "surge-sim",
-    label: "SurgeSim",
-    domain: "Marketplace PM · Dynamic Pricing",
-    badge: "bg-orange-50 ring-orange-200",
-    badgeText: "text-orange-900",
-    headline: "SurgeSim",
-    description:
-      "City-wide supply/demand control tower — simulate weather shocks, surge caps, and zone-level match rate vs. checkout abandonment in real time.",
-    heroGradient: "from-orange-50 via-white to-amber-50/50",
-    accent: "text-orange-800",
-    accentMuted: "bg-orange-600 hover:bg-orange-700",
-    ring: "ring-orange-500",
-    tabActive: "bg-orange-600 text-white shadow-sm",
-    pill: "bg-orange-50 text-orange-900 ring-orange-100",
-    statHighlight: "border-orange-200 bg-orange-50 text-orange-900",
-    statWarn: "border-red-200 bg-red-50 text-red-800",
-  },
   "claim-resolve": {
     id: "claim-resolve",
     label: "ClaimResolve",
@@ -142,22 +104,6 @@ export interface EnterpriseScenario {
 }
 
 export const ENTERPRISE_SCENARIOS: Partial<Record<ProjectThemeId, EnterpriseScenario[]>> = {
-  "data-synth": [
-    { id: "prelaunch", label: "Pre-launch QA", description: "Balanced sentiment for classifier dry-runs" },
-    { id: "churn", label: "Churn post-mortem", description: "Heavy negative + feature requests" },
-    { id: "enterprise", label: "Enterprise beta", description: "Power-user persona, compliance focus" },
-    { id: "support", label: "Support sandbox", description: "Bug reports + neutral how-to questions" },
-    { id: "healthcare", label: "HealthTech pilot", description: "Patient adherence + care-plan feedback" },
-    { id: "ecommerce", label: "Festive sale QA", description: "Price-sensitive shopper complaints" },
-  ],
-  "surge-sim": [
-    { id: "rush-hour", label: "Friday rush hour", description: "High demand, moderate supply" },
-    { id: "storm", label: "Storm surge", description: "Weather shock + demand spike" },
-    { id: "stadium", label: "Stadium event", description: "Localized hotspot, supply drain" },
-    { id: "airport", label: "Airport pickup", description: "Sustained imbalance, cap test" },
-    { id: "downtown", label: "Downtown nightlife", description: "Late-night demand spike" },
-    { id: "holiday", label: "Holiday surge", description: "Peak travel weekend" },
-  ],
   "claim-resolve": [
     { id: "standard", label: "Standard ops", description: "Default policy thresholds" },
     { id: "strict", label: "Strict fraud mode", description: "Lower caps, tighter repeat limits" },

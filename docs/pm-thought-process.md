@@ -15,8 +15,6 @@ I built this site for **Associate Product Manager** interviews. Each project is 
 | "How do you turn messy user input into a roadmap?" | Feedback Analyzer (ICE + RICE) |
 | "How do you think about platform cost and reliability?" | PromptRoute |
 | "How would you automate ops without blowing up risk?" | ClaimResolve |
-| "How do you reason about marketplace trade-offs?" | SurgeSim |
-| "How do you de-risk a launch with no users?" | DataSynth |
 | "How do you ship document intelligence in fintech?" | Doc Classifier |
 
 My background — Angel One (LAMF pre-launch), Indian Oil product & strategy, IIT Bombay — pushed me toward **fintech, ops guardrails, and measurable north-star metrics**. I didn't want six unrelated demos; I wanted a **coherent PM narrative** across domains.
@@ -36,9 +34,7 @@ Every demo names two metrics: what we're optimizing for and what we're protectin
 | Project | North star | Guardrail |
 |---------|------------|-----------|
 | ClaimResolve | Auto-resolution rate | False refund rate |
-| SurgeSim | Order match rate | Checkout abandonment |
 | PromptRoute | Cost savings % | Failover recovery rate |
-| DataSynth | Persona compliance | Duplicate rate |
 | Feedback Analyzer | Time to insight | Framework defensibility (ICE/RICE) |
 | Doc Classifier | Routing accuracy | SLA breach rate |
 
@@ -168,57 +164,7 @@ Flow diagram (submit → lookup → identity → policy → verdict) makes the a
 
 ---
 
-## Project 4 — SurgeSim
-
-**Domain:** Marketplace PM · Dynamic Pricing  
-**Timeline:** 2026
-
-### Step 1: Problem framing
-Ride-share PMs live in the tension between **match rate** (riders paired) and **abandonment** (riders leaving due to surge/wait). You can't optimize one in a vacuum.
-
-### Step 2: Zone-level simulation
-A 24-zone grid map makes supply/demand **spatial** — stadium events, airports, and downtown nightlife behave differently. City-wide averages hide the story.
-
-### Step 3: Weather as demand shock
-Weather events (clear / rain / storm) model exogenous demand spikes — the classic "surge during rain" narrative with data behind it.
-
-### Step 4: Surge caps as guardrail
-Min/max multiplier sliders let PMs ask: "If we cap surge at 2×, what happens to match rate vs. abandonment?" That's the actual product conversation.
-
-### Step 5: SLA breach callout
-When abandonment exceeds 15%, a visible alert fires. **Guardrails should be loud**, not buried in a chart.
-
-### Step 6: Presets
-Rush hour, storm surge, stadium event, airport pickup — each tells a different marketplace story in one click.
-
----
-
-## Project 5 — DataSynth
-
-**Domain:** Growth PM · Synthetic Data  
-**Timeline:** 2026
-
-### Step 1: Problem framing
-Pre-launch teams can't test classifiers, routers, or triage workflows without realistic feedback. Manual seed data is slow and off-persona.
-
-### Step 2: Persona-first generation
-I prioritized **persona fidelity** over raw volume. Misaligned synthetic reviews break evals worse than too few samples.
-
-### Step 3: Sentiment mix sliders
-Configurable positive/neutral/negative mix lets PMs stress-test escalation paths — e.g., churn post-mortem at 65% negative.
-
-### Step 4: Batch sizes (50 / 100 / 250)
-Different teams need different eval sizes. Generation must finish in **< 8 seconds** or PMs abandon mid-sprint.
-
-### Step 5: Quality KPIs
-Persona compliance % and duplicate rate % give Growth PMs a language to defend synthetic data quality to ML stakeholders.
-
-### Step 6: Pairing with Feedback Analyzer
-DataSynth → export CSV → Feedback Analyzer is the **intended loop**: generate sandbox data, then prioritize it. Two demos, one workflow.
-
----
-
-## Project 6 — AI Document Classifier
+## Project 4 — AI Document Classifier
 
 **Domain:** Fintech · KYC & Onboarding  
 **Timeline:** Sep 2025 (earliest technical build)
@@ -245,7 +191,7 @@ KYC retail, SME lending, HR onboarding, compliance audit — each loads a differ
 
 ## Projects I chose NOT to feature
 
-I built CheckoutFriction, ExportHub, and VoiceFlow early in the portfolio sprint, then **removed them from the homepage** to keep the narrative tight. Six strong demos beat nine thin ones. The code taught me growth PM, B2B export UX, and voice latency trade-offs — but the featured set targets my APM story: **strategy, platform, fintech ops, marketplace, growth, and document intelligence**.
+I built CheckoutFriction, ExportHub, VoiceFlow, DataSynth, and SurgeSim early in the portfolio sprint, then **removed them from the homepage** to keep the narrative tight. Five strong demos beat nine thin ones. The code taught me growth PM, B2B export UX, voice latency trade-offs, marketplace pricing, and synthetic data — but the featured set targets my APM story: **strategy, platform, fintech ops, and document intelligence**.
 
 ---
 
