@@ -7,6 +7,7 @@ export interface Project {
   href?: string;
   caseStudyHref?: string;
   docsHref?: string;
+  githubHref?: string;
   featured: boolean;
   accent?: "indigo" | "emerald";
   metrics?: { label: string; value: string }[];
@@ -15,6 +16,26 @@ export interface Project {
 }
 
 export const projects: Project[] = [
+  {
+    id: "lendassist",
+    title: "LendAssist — AI Lending Conversation Orchestrator",
+    subtitle: "Enterprise Conversational AI Orchestration Platform for High-Stakes Lending",
+    description:
+      "Dual-LLM conversational AI platform for Home Loans & Loan Against Mutual Funds (LAMF). Combines an NLU cognitive layer, boundary response policies, real-time multi-signal escalation routing (fraud, frustration, timeout), adversarial evaluation framework, and an interactive 7-toggle failure injection simulator.",
+    tags: ["Conversational AI", "Fintech Ops", "Dual-LLM", "Escalation Engine", "FastAPI / Next.js"],
+    href: "https://lendassist.vercel.app",
+    docsHref: "/docs/lendassist-PRD",
+    githubHref: "https://github.com/princegupta213/lendassist",
+    featured: true,
+    accent: "indigo",
+    metrics: [
+      { label: "Decision latency", value: "< 250ms" },
+      { label: "Escalation accuracy", value: "94.2%" },
+      { label: "Failure modes", value: "7 simulated" },
+    ],
+    role: "Lead Builder & PM",
+    timeline: "2026",
+  },
   {
     id: "amazing-hypatia",
     title: "Launch Employee (Ava)",
@@ -25,6 +46,7 @@ export const projects: Project[] = [
     href: "/projects/amazing-hypatia",
     caseStudyHref: "/projects/amazing-hypatia/case-study",
     docsHref: "/docs/amazing-hypatia-PRD",
+    githubHref: "https://github.com/princegupta213/amazing-hypatia",
     featured: true,
     accent: "indigo",
     metrics: [
@@ -85,6 +107,7 @@ export const projects: Project[] = [
     href: "/projects/feedback-analyzer",
     caseStudyHref: "/projects/feedback-analyzer/case-study",
     docsHref: "/docs/feedback-analyzer-PRD",
+    githubHref: "https://github.com/princegupta213/ai-product-feedback-analyzer",
     featured: true,
     accent: "indigo",
     metrics: [
@@ -105,6 +128,7 @@ export const projects: Project[] = [
     href: "/projects/doc-classifier",
     caseStudyHref: "/projects/doc-classifier/case-study",
     docsHref: "/docs/doc-classifier-PRD",
+    githubHref: "https://github.com/princegupta213/pdf-doc-classifier",
     featured: true,
     accent: "emerald",
     metrics: [

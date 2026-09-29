@@ -11,6 +11,7 @@ const DOC_TITLES: Record<string, string> = {
   "doc-classifier-PRD": "Document Classifier PRD",
   "amazing-hypatia-PRD": "Launch Employee PRD",
   "feedback-analyzer-PRD": "Feedback Analyzer PRD",
+  "lendassist-PRD": "LendAssist Conversational AI PRD",
   "user-research-summary": "User Research Summary",
   "product-strategy": "Product Strategy",
 };
