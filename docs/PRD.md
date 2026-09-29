@@ -1,139 +1,104 @@
 # Product Requirements Document (PRD)
-## AI Product Feedback Analyzer
+## AI Product Feedback Analyzer — Qualitative Triage & Prioritized Roadmap Engine
 
 **Author:** Prince Kumar · IIT Bombay  
-**Version:** 1.0  
-**Last updated:** June 2025  
-**Status:** MVP shipped
+**Role:** Product Strategy & User Research PM  
+**Status:** Approved / Production Blueprint  
+**Version:** 2.0 (Dual-Framework Prioritization Engine)  
+**Target Systems:** PM Workflow Suite, Product Backlog / Jira, Stakeholder Presentation Deck  
 
 ---
 
-## 1. Problem Statement
+## 1. Executive Summary
 
-Product managers spend 40%+ of their time synthesizing qualitative feedback from app reviews, NPS surveys, and support tickets. Manual tagging is slow, inconsistent across reviewers, and hard to translate into prioritized roadmap decisions.
+Product Managers spend over **40% of sprint planning time** manually reading through unstructured qualitative feedback—App Store reviews, NPS verbatims, and Zendesk tickets. This manual synthesis is slow, subject to recency bias (the loudest user wins), and lacks defensible mathematical scoring when defending roadmap priorities in leadership reviews.
 
-**Target user:** Associate / entry-level PMs, founders, and UX researchers who need to go from raw feedback → actionable insights quickly.
-
----
-
-## 2. Goals & Success Metrics
-
-| Goal | Metric | Target (MVP) |
-|------|--------|--------------|
-| Reduce time-to-insight | Time from upload → report | < 2 minutes |
-| Improve prioritization clarity | Users who export roadmap | > 60% |
-| Demonstrate PM workflow | Portfolio demo completions | N/A (portfolio) |
-
-**North Star Metric:** Number of product opportunities identified per analysis session.
+**AI Product Feedback Analyzer** is an end-to-end user research workflow tool that automatically ingests raw customer reviews, clusters qualitative noise into 10 structured product themes, extracts net sentiment, and calculates auditable **ICE** and **RICE** scores to output a prioritized sprint roadmap in under 2 minutes.
 
 ---
 
-## 3. User Personas
+## 2. Problem Statement & User Personas
 
-### Primary: Aspiring APM (Alex)
-- **Context:** Preparing for PM interviews; has survey/review data from a side project
-- **Need:** Turn messy feedback into a structured roadmap story for case studies
-- **Pain:** Doesn't know which themes matter most or how to prioritize
+### 2.1 The Core Problem
+1. **Qualitative Noise Overload**: Unstructured text reviews are hard to aggregate without losing the severity of individual customer pain points.
+2. **Subjective Prioritization**: Without an explicit mathematical scoring model, roadmaps are shaped by internal politics or recent escalations rather than user reach and impact.
+3. **Synthesis Time Lag**: Translating 100+ raw reviews into executive-ready requirements takes days, delaying engineering handoffs.
 
-### Secondary: Early-stage Founder (Sam)
-- **Context:** 200 App Store reviews, no dedicated PM
-- **Need:** Quick pulse on top user pain points before next sprint
-- **Pain:** Reading reviews one-by-one doesn't scale
-
----
-
-## 4. User Stories
-
-| ID | Story | Priority |
-|----|-------|----------|
-| US-1 | As a PM, I want to upload a CSV of reviews so I can analyze bulk feedback | P0 |
-| US-2 | As a PM, I want feedback clustered by theme so I can see patterns | P0 |
-| US-3 | As a PM, I want sentiment breakdown so I know urgency | P0 |
-| US-4 | As a PM, I want ICE-scored opportunities so I can prioritize | P0 |
-| US-5 | As a PM, I want to export a markdown report for stakeholders | P1 |
-| US-6 | As a PM, I want sample data so I can demo without my own CSV | P1 |
+### 2.2 Target Personas
+* **Primary: Associate Product Manager (APM)**: Needs structured frameworks (ICE/RICE) to present defensible, data-backed feature trade-offs.
+* **Secondary: Early-Stage Founder**: Needs immediate clarity on the top 3 product-breaking bugs without hiring dedicated research staff.
+* **Engineering Lead**: Needs clear categorization separating infrastructure/auth blockers from cosmetic UI requests.
 
 ---
 
-## 5. MVP Scope
+## 3. Product Frameworks
 
-### In scope
-- CSV upload (drag-and-drop)
-- Auto-detect columns (review, rating, date, source)
-- Theme clustering (10 predefined product themes)
-- Sentiment analysis (positive / neutral / negative)
-- ICE prioritization (Impact × Confidence ÷ Effort)
-- Dashboard with charts and roadmap table
-- Export markdown report
-- 100-review sample dataset
+### Framework 1: Mathematical Prioritization Framework (ICE vs. RICE)
+The system provides dual-framework scoring tailored to organizational maturity:
 
-### Out of scope (v2)
-- LLM-powered theme discovery (custom themes)
-- Multi-file upload / database persistence
-- Team collaboration and sharing
-- Integration with App Store Connect, Zendesk, Intercom
-- Historical trend analysis over time
+| Metric Component | Scoring Range | Valuation Heuristic / Formula |
+|---|---|---|
+| **Impact ($I$)** | 1 to 10 | Severity of customer friction (1 = cosmetic annoyance; 10 = blocking core value/crashes) |
+| **Confidence ($C$)** | 1 to 10 (or %) | `Volume of reviews in cluster × Negative sentiment ratio` |
+| **Effort ($E$)** | 1 to 10 | Estimated engineering sprint story points (1 = copy change; 10 = architectural overhaul) |
+| **Reach ($R$)** | Quantified Count | `Cluster Mention Count × 120` (estimated quarterly user exposure per review) |
 
----
+* **ICE Model (Early Stage):**
+  $$\text{ICE Score} = \frac{\text{Impact} \times \text{Confidence}}{\text{Effort}}$$
+* **RICE Model (Enterprise Scale):**
+  $$\text{RICE Score} = \frac{\text{Reach} \times \text{Impact} \times \text{Confidence \%}}{\text{Effort}}$$
 
-## 6. Feature Specifications
+### Framework 2: Qualitative Taxonomy & Priority Bands
 
-### 6.1 CSV Upload
-- Accept `.csv` with header row
-- Auto-map columns: `review`, `feedback`, `comment`, `text`, `rating`, `date`, `source`
-- Minimum 1 row with non-empty review text
-- Error states: empty file, no text column, parse failure
-
-### 6.2 Theme Clustering
-- Match reviews to 1+ themes via keyword rules
-- Themes: Performance, UI/UX, Auth, Notifications, Search, Pricing, Support, Features, Onboarding, Sync
-- Show count, percentage, sample quotes, top keywords per theme
-
-### 6.3 ICE Scoring
-- **Impact (1–10):** Severity of user pain for theme
-- **Confidence (1–10):** Volume of evidence + negative sentiment ratio
-- **Effort (1–10):** Estimated engineering cost (heuristic)
-- **ICE Score:** `(Impact × Confidence) / Effort`
-- **Priority bands:** P0 (≥7), P1 (≥5), P2 (≥3), P3 (<3)
-
-### 6.4 Export
-- Markdown report: summary, pain points, roadmap table, theme breakdown
+```
+[ RAW REVIEWS ] ──► [ THEME CLUSTERING ] ──► [ SENTIMENT WEIGHTING ] ──► [ ROADMAP BANDS ]
+106 App Store       10 Predefined             Negative Verbatims         • P0 (Score ≥ 7.0)
+Reviews / CSV       Product Buckets           Given 1.5x Multiplier      • P1 (Score ≥ 5.0)
+                                                                         • P2 (Score ≥ 3.0)
+```
 
 ---
 
-## 7. Non-Functional Requirements
+## 4. Key Product Decisions & Trade-off Rationales
 
-- Analysis completes in-browser (no server required for MVP)
-- Works offline after initial page load
-- Responsive layout (desktop-first, mobile-readable)
-- No PII stored; data processed client-side only
-
----
-
-## 8. Risks & Mitigations
-
-| Risk | Mitigation |
-|------|------------|
-| Keyword clustering misses nuance | Document as MVP limitation; v2 adds LLM |
-| Multi-theme reviews double-counted | Acceptable for MVP; show as cross-cutting signal |
-| ICE scores feel arbitrary | Expose I/C/E breakdown; allow manual override in v2 |
-| Large CSVs slow browser | Cap at 5,000 rows; warn above 1,000 |
+| Product Decision | Options Evaluated | Chosen Approach | PM Trade-off & Rationale |
+|---|---|---|---|
+| **1. Clustering Mechanism** | A. Blackbox LLM API<br>B. Deterministic Keyword Taxonomy | **B. Deterministic Keyword Taxonomy** | **Interview Defensibility:** Blackbox LLMs cannot explain *why* a review was assigned to a cluster. A transparent keyword-heuristic model allows PM candidates to walk recruiters through the exact categorization logic. |
+| **2. Dual Framework Support** | A. ICE only<br>B. RICE only<br>C. Toggleable ICE / RICE | **C. Toggleable ICE / RICE** | **Multi-Stage Relevance:** ICE is optimal for 0➔1 early discovery; RICE is mandatory for enterprise scale where Reach justifies resource allocation. A live toggle proves fluency in both paradigms. |
+| **3. Stakeholder Lenses** | A. Unified single table<br>B. PM vs. Eng Filter Views | **B. PM vs. Eng Filter Views** | **Cross-Functional Alignment:** Engineering leaders prioritize reliability, performance, and auth; PMs focus on pricing, onboarding, and features. Segmented views mirror real sprint ceremonies. |
+| **4. Ingestion Experience** | A. CSV upload only<br>B. One-Click Sample Dataset | **B. One-Click Sample Dataset** | **Zero Time-to-Value:** Recruiters review portfolios in under 90 seconds. Requiring an external CSV causes immediate drop-off; pre-seeding 106 real-world reviews ensures instant engagement. |
 
 ---
 
-## 9. Open Questions
+## 5. Metric Framework (North Star & Guardrails)
 
-1. Should we add optional OpenAI integration for custom theme extraction?
-2. Is RICE (Reach) more appropriate than ICE for this audience?
-3. Should negative-only filtering be a toggle?
+* **North Star Metric:** **Time to Actionable Insight**
+  * *Target:* **< 2.0 minutes** from data ingestion to prioritized roadmap generation.
+* **Product Success Metrics:**
+  * **Roadmap Export Rate:** % of sessions where a user downloads the synthesized `.md` artifact (Target: **> 60%**).
+  * **Theme Extraction Coverage:** % of input reviews mapped to ≥ 1 actionable product theme (Target: **> 85%**).
+* **Process Guardrail Metric:**
+  * **Framework Defensibility:** 100% of prioritized opportunities must display underlying Impact, Confidence, and Effort parameters.
 
 ---
 
-## 10. Timeline (Hypothetical)
+## 6. Functional Specifications
 
-| Phase | Deliverable | Duration |
-|-------|-------------|----------|
-| Week 1 | PRD, wireframes, sample data | 5 days |
-| Week 2 | Upload + clustering engine | 5 days |
-| Week 3 | Dashboard + ICE scoring | 5 days |
-| Week 4 | Export, polish, case study write-up | 5 days |
+1. **Flexible Ingestion Pipeline**:
+   * Drag-and-drop CSV parser with auto-column detection (`review`, `rating`, `date`, `source`).
+   * "One-Click Sample Reviews" button loading 106 curated fintech and consumer app reviews.
+2. **Thematic Clustering Engine**:
+   * Evaluates text against 10 core dimensions: *Performance, UI/UX, Auth & Security, Notifications, Search, Pricing & Billing, Customer Support, Missing Features, Onboarding, Sync*.
+3. **Interactive Scoring Table**:
+   * Live toggle between ICE and RICE scoring algorithms.
+   * Filterable by Priority Band (P0, P1, P2) and Departmental Lens (PM vs. Engineering).
+4. **Markdown Export Generator**:
+   * Generates a complete requirements summary ready to paste into Notion, Linear, or executive PRD decks.
+
+---
+
+## 7. Production Roadmap & Future Milestones
+
+* **Phase 1 (Shipped):** Browser ingestion, 10-theme clustering, dual ICE/RICE scoring, markdown report export.
+* **Phase 2 (Next):** Direct API integrations with Apple App Store Connect, Google Play Console, and Zendesk.
+* **Phase 3 (Enterprise):** Fine-tuned semantic embedding clusterer for continuous weekly customer sentiment tracking.

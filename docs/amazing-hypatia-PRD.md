@@ -1,83 +1,103 @@
-# PRD — Launch Employee (Ava)
+# Product Requirements Document (PRD)
+## Launch Employee (Ava) — Autonomous AI Product Launch Orchestration Workspace
 
 **Author:** Prince Kumar · IIT Bombay  
-**Version:** 1.0 · Autonomous Launch Workspace  
-**Stack:** Next.js 16 (Turbopack) + TypeScript + Tailwind CSS + Framer Motion  
+**Role:** AI Product PM & System Builder  
+**Status:** Approved / Production Blueprint  
+**Version:** 2.0 (Agentic Launch Architecture)  
+**Target Systems:** Web Workspace, Slack/Jira Integrations, GTM Execution Pipeline  
 
 ---
 
-## Executive Summary
+## 1. Executive Summary
 
-Ava is an autonomous **AI Product Launch Employee** designed to manage cross-functional launch complexity. Traditional dashboards are passive, requiring manual data synchronization and manual metrics checks. Ava coordinates GTM checklists, audits target segment configurations, runs post-launch telemetry simulations, and escalates critical business tradeoffs directly to a human PM.
+Enterprise product launches are plagued by fragmented execution. When a strategic decision changes (e.g., pivoting target audience from SMB to Enterprise), Product Managers must manually propagate parameters across marketing copy, sales pitch decks, legal disclaimers, and engineering roadmaps. Traditional dashboards are **passive**—they reflect historical status but cannot coordinate dependencies or stress-test post-launch anomalies.
 
----
-
-## Problem
-
-Product launch execution is fragmented:
-- **Context Drift:** High-level strategic targets (e.g. pivoting from SMB to Enterprise) require manual updates across marketing assets, legal logs, support guidelines, and engineering task tickets.
-- **Passive Interfaces:** PMs must regularly check monitoring tools to detect conversion drops, competitor moves, or customer complaints.
-- **Action Inability:** Existing tools write static draft snippets but cannot run end-to-end simulations or manage actual milestone transitions.
+**Launch Employee (Ava)** is an agentic, proactive digital teammate that ingests unstructured launch documentation, constructs an active project brain, maintains parameter consistency across departments via a real-time **Consistency Engine**, and enables PMs to test operational readiness through an interactive **Time Travel Simulator**.
 
 ---
 
-## Product Goals
+## 2. Problem Statement & User Personas
 
-- **Goal 1:** Eliminate GTM drift by building a **Consistency Engine** that automatically matches dependent parameters and highlights updates.
-- **Goal 2:** Build trust by rendering **Proactive Background Logs** showing the AI's step-by-step reasoning.
-- **Goal 3:** Create a **Time Travel Simulator** allowing PMs to preview post-launch milestones and test operational readiness before launch day.
-- **Goal 4:** Establish a **Human-in-the-Loop Sign-off Inbox** with a slide-over tradeoff drawer for direct multi-turn debates.
+### 2.1 The Core Problem
+1. **Context Drift Across Silos**: When launch variables shift, asynchronous departmental teams execute on stale assumptions, causing customer confusion and compliance friction.
+2. **Passive Monitoring Paralysis**: Dashboards require humans to actively hunt for anomalies instead of the system proactively surfacing high-risk trade-offs.
+3. **Lack of Pre-Mortem Simulation**: Teams only discover post-launch edge cases (e.g., Day 3 activation drops, competitor pricing clones) after going live.
 
----
-
-## Core Requirements & Specifications
-
-### 1. Dynamic Knowledge Engine
-- Ingests multiple workspace files (PRD, competitor SWOT, customer surveys, meeting transcripts) to construct a localized project brain.
-- Populates key performance metrics (North Star, success metrics) and department lists dynamically.
-
-### 2. Consistency Engine
-- Toggles target segments (`SMB` vs. `Enterprise`) and strategic biases (`Growth`, `Reliability`, `Profit`).
-- Propagates updates downstream: updates pricing tiers, customizes GTM email copy, and changes legal risk matrices.
-- Highlights updated elements with a violet-purple transition pulse.
-
-### 3. Time Travel Simulator
-- Progression pathway: `Today` ➔ `Launch Day` ➔ `Day 3` ➔ `Week 2` ➔ `Month 1`.
-- Day 3 triggers an activation drop anomaly (18% drop).
-- Week 2 triggers a competitor clone event.
-- Month 1 stabilizes performance trends.
-
-### 4. Interactive Discuss Drawer
-- Stateful chat client within the inbox checklist card.
-- Supports viewport auto-scrolling, typing indicators, and contextual AI response loops based on turn count and selected alerts.
+### 2.2 Target Personas
+* **Primary: Senior Product Manager / GTM Lead**: Needs a unified control plane to synchronize cross-functional assets and resolve strategic trade-offs before launch day.
+* **Secondary: Marketing & Sales Operations**: Needs immediate, synchronized GTM messaging aligned with product capabilities and pricing tiers.
 
 ---
 
-## Success Metrics
+## 3. Product Frameworks
 
-- **Folder Processing Time:** Ingesting 5+ template files completes in under 2.0 seconds.
-- **Consistency Synchronization Latency:** Component parameter propagation takes under 1.5 seconds.
-- **Product Health Derivation:** Real-time departmental readiness score updates instantly when checklists are toggled.
+### Framework 1: The OODA-Loop Agentic Operating Framework
+Ava operates on an autonomous Observe-Orient-Decide-Act loop backed by a strict human-escalation boundary:
 
----
+| Stage | Agent Action | System Component | Output / Artifact |
+|---|---|---|---|
+| **1. Observe** | Ingest raw documentation (PRDs, surveys, SWOT) | Dynamic Knowledge Parser | Localized Project Brain & Entity Graph |
+| **2. Orient** | Detect audience segments, goals, and constraints | Semantic Entity Extractor | Departmental Health Indices (0–100%) |
+| **3. Decide** | Identify cross-document parameter conflicts | Consistency Engine | Parameter Mismatch & Drift Flags |
+| **4. Act** | Synchronize downstream copy and pricing tiers | Reactive State Propagator | Auto-Updated GTM Emails & Checklists |
+| **5. Escalate** | Trigger human debate on critical strategic trade-offs | Interactive Discuss Drawer | Human-Approved Decision Sign-off Log |
 
-## System Architecture
+### Framework 2: The Time Travel Pre-Mortem Scenario Matrix
+Before committing real marketing budgets, PMs test their launch plan across 5 temporal checkpoints:
 
 ```
-State Provider (LaunchContext.tsx)
-    ├── Brain State (North Star, segment, preference)
-    ├── Plan State (Checklists, activeTasks, inboxAlerts)
-    └── Sync hooks ➔ LocalStorage (Persisted Session)
-
-UI Render Trees
-    ├── LeftSidebar (Confidence gauge + Department health)
-    ├── Header (Time Travel Stepper + Audience selectors)
-    └── RightWork (Knowledge tabs, Checklist toggles, Metrics, History logs)
+[ TODAY ] ──► [ LAUNCH DAY ] ──► [ DAY 3 ] ──► [ WEEK 2 ] ──► [ MONTH 1 ]
+Baseline       Go-Live Surge      Anomaly:      Competitor      Steady-State
+Checklist      Coordination      -18% Drop     Clone Launch    Sustained Growth
 ```
+
+* **Day 3 Anomaly:** Simulates an unexpected onboarding funnel drop-off, verifying if support playbooks are primed.
+* **Week 2 Threat:** Simulates a rival cloning core features at 30% discount, testing GTM defensibility.
 
 ---
 
-## Future Roadmap
+## 4. Key Product Decisions & Trade-off Rationales
 
-- **Integration:** Link with live Jira ticket endpoints and Slack workspace webhooks.
-- **Auditing:** Implement vector embeddings to run automated semantic similarity checks on user uploads.
+| Product Decision | Options Evaluated | Chosen Approach | PM Trade-off & Rationale |
+|---|---|---|---|
+| **1. Teammate Model** | A. Passive status tracker<br>B. Autonomous proactive agent | **B. Autonomous proactive agent** | **Reduced Cognitive Load:** PMs spend hours chasing checklist updates. A proactive digital teammate that flags blockers and drafts solutions saves 10+ hours per launch cycle. |
+| **2. Parameter Sync Pattern** | A. Manual form updates<br>B. Reactive State Consistency Engine | **B. Reactive State Consistency Engine** | **Zero Cross-Functional Drift:** When a PM toggles `SMB` to `Enterprise`, the system automatically adjusts pricing tiers, legal terms, and marketing headers with visual pulse cues. |
+| **3. Escalation UX** | A. Blocking modal popups<br>B. Slide-over Discuss Drawer | **B. Slide-over Discuss Drawer** | **Context Preservation:** Modals break workflow. A slide-over drawer allows PMs to debate trade-offs via conversational AI while keeping the active workspace visible. |
+| **4. Knowledge Base Storage** | A. Cloud database dependency<br>B. Client-side state persistence | **B. Client-side state persistence** | **Zero Setup Friction:** In interview and demo settings, recruiters need instantaneous evaluation with zero login walls or API latency. |
+
+---
+
+## 5. Metric Framework (North Star & Guardrails)
+
+* **North Star Metric:** **Launch Readiness Confidence Index**
+  * *Formula:* Weighted aggregate of Departmental Health (Product, Engineering, Marketing, Legal) + Parameter Alignment.
+  * *Target:* **> 85.0%** before authorizing launch milestone progression.
+* **Platform Efficiency Metrics:**
+  * **Synchronization Latency:** Time to propagate a strategic change across all assets (Target: **< 1.5 seconds**).
+  * **Workspace Ingestion Speed:** Parsing 5+ workspace files into structured state (Target: **< 2.0 seconds**).
+* **Process Guardrail Metric:**
+  * **Unresolved High-Risk Blockers:** Must be **0** before transitioning past Launch Day milestone.
+
+---
+
+## 6. Functional Specifications
+
+1. **Workspace Knowledge Hub**:
+   * Pre-configured with 7 enterprise workspaces (Fintech, B2B SaaS, E-commerce, HealthTech, etc.).
+   * Dynamic tabs: PRD Specifications, Competitor SWOT, Customer Signals, Execution Roadmap.
+2. **Consistency Engine**:
+   * Interactive toggles for Target Audience (`SMB` vs. `Mid-Market` vs. `Enterprise`) and Strategic Bias (`Growth` vs. `Profit` vs. `Reliability`).
+   * Real-time propagation across checklist cards and marketing email previews.
+3. **Proactive Reasoning Logs**:
+   * Transparent terminal-style log detailing Ava's internal deductions and background verifications.
+4. **Interactive Trade-Off Drawer**:
+   * Multi-turn chat interface to challenge AI recommendations, request alternative copy, or override risk scores.
+
+---
+
+## 7. Production Roadmap & Future Milestones
+
+* **Phase 1 (Shipped):** Interactive Next.js workspace, Consistency Engine, Time Travel simulator, Discuss drawer.
+* **Phase 2 (Next):** Bidirectional sync with Jira, Linear, and Notion API endpoints.
+* **Phase 3 (Enterprise):** Autonomous multi-agent coordination with dedicated sub-agents for Legal compliance and Security audits.
