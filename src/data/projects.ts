@@ -24,8 +24,8 @@ export const projects: Project[] = [
       "Dual-LLM conversational AI platform for Home Loans & Loan Against Mutual Funds (LAMF). Combines an NLU cognitive layer, boundary response policies, real-time multi-signal escalation routing (fraud, frustration, timeout), adversarial evaluation framework, and an interactive 7-toggle failure injection simulator.",
     tags: ["Conversational AI", "Fintech Ops", "Dual-LLM", "Escalation Engine", "FastAPI / Next.js"],
     href: "https://lendassist.vercel.app",
+    caseStudyHref: "/projects/lendassist/case-study",
     docsHref: "/docs/lendassist-PRD",
-    githubHref: "https://github.com/princegupta213/lendassist",
     featured: true,
     accent: "indigo",
     metrics: [
